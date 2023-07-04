@@ -133,12 +133,12 @@ dependencies = [
  "cw-storage-plus",
  "cw0",
  "cw2",
+ "dotlabs",
  "hex",
  "schemars",
  "serde",
  "thiserror",
  "tiny-keccak",
- "tns",
  "unicode-segmentation",
 ]
 
@@ -378,6 +378,27 @@ dependencies = [
  "block-buffer 0.10.4",
  "crypto-common",
  "subtle",
+]
+
+[[package]]
+name = "dotlabs"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.2",
+ "chrono",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cosmwasm-storage",
+ "cw-storage-plus",
+ "cw0",
+ "cw2",
+ "cw721",
+ "hex",
+ "schemars",
+ "serde",
+ "thiserror",
+ "tiny-keccak",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -859,27 +880,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
 dependencies = [
  "crunchy",
-]
-
-[[package]]
-name = "tns"
-version = "0.1.0"
-dependencies = [
- "base64 0.21.2",
- "chrono",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus",
- "cw0",
- "cw2",
- "cw721",
- "hex",
- "schemars",
- "serde",
- "thiserror",
- "tiny-keccak",
- "unicode-segmentation",
 ]
 
 [[package]]

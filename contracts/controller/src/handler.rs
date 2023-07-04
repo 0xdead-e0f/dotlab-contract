@@ -12,13 +12,13 @@ use cosmwasm_std::{
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
-use tns::registrar::{
+use dotlabs::registrar::{
     ExecuteMsg as RegistrarExecuteMsg, Extension, GetBaseNodeResponse, GetRegistryResponse,
     IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
 };
-use tns::registry::ExecuteMsg as RegistryExecuteMsg;
-use tns::resolver::ExecuteMsg as ResolverExecuteMsg;
-use tns::utils::{get_label_from_name, get_token_id_from_label, keccak256};
+use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
+use dotlabs::resolver::ExecuteMsg as ResolverExecuteMsg;
+use dotlabs::utils::{get_label_from_name, get_token_id_from_label, keccak256};
 use unicode_segmentation::UnicodeSegmentation;
 
 fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {

@@ -33,7 +33,7 @@ schemars = "0.8.12"
 serde = { version = "1.0.166", features = ["derive"], default-features = false }
 thiserror = "1.0.40"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
-tns = { version = "0.1.0", path = "../../packages/tns" }
+dotlabs = { version = "0.1.0", path = "../../packages/dotlabs" }
 unicode-segmentation = "1.10.1"
 cosmwasm-schema = "1.2.7"
 
