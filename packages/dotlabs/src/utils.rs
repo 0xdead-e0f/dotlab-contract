@@ -1,5 +1,5 @@
-use base64;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use base64::{Engine as _, engine::general_purpose};
+use chrono::{DateTime, NaiveDateTime, Utc, NaiveDate, NaiveTime};
 use hex;
 use tiny_keccak::{Keccak, Hasher};
 use unicode_segmentation::UnicodeSegmentation;
@@ -72,7 +72,10 @@ pub fn generate_image(name: String, timestamp: u64) -> String {
     let n_color = COLORS.len() as u8;
     let random_number = hash[0];
     let color = COLORS[(random_number % n_color) as usize];
-    let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(timestamp as i64, 0), Utc);
+
+    let dt_default = NaiveDateTime::new(NaiveDate::from_yo_opt(2000, 1).unwrap(), NaiveTime::from_hms_opt(0,0,0).unwrap());
+    let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(timestamp as i64, 0).unwrap_or(dt_default), Utc);
+    // let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(timestamp as i64, 0), Utc);
     let date = dt.format("%d.%m.%Y").to_string();
     let graphemes = name.graphemes(true);
     let names: Vec<String> = graphemes
@@ -100,9 +103,9 @@ pub fn generate_image(name: String, timestamp: u64) -> String {
         );
         name_tags += &name_tag;
     }
-
     return String::from("data:image/svg+xml;base64,")
-        + &base64::encode(format!(
+        // + &base64::encode(format!(
+        + &general_purpose::STANDARD.encode(format!(
             r###"
         <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M500 0H0V500H500V0Z" fill="{c0}" />

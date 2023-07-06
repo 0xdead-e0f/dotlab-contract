@@ -8,7 +8,7 @@ use crate::msg::{
 use crate::state::{COMMITMENTS, CONFIG, REGISTER_FEE_DENOM};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, BankMsg,
+    QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, BankMsg, CustomMsg,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
@@ -262,7 +262,7 @@ fn _register(
     let get_registry_response: GetRegistryResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: registrar_address.clone(),
-            msg: to_binary(&RegistrarQueryMsg::GetRegistry {})?,
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetRegistry {})?,
         }))?;
     let registry_address = String::from(get_registry_response.registry);
 
@@ -550,7 +550,7 @@ pub fn get_nodehash(deps: Deps, label: Vec<u8>) -> StdResult<Vec<u8>> {
     let get_base_node_response: GetBaseNodeResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: registrar_address.clone(),
-            msg: to_binary(&RegistrarQueryMsg::GetBaseNode {})?,
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetBaseNode {})?,
         }))?;
     let base_node = get_base_node_response.base_node;
 
@@ -571,7 +571,7 @@ pub fn is_available_name(deps: Deps, name: &String) -> StdResult<bool> {
     let is_available_response: IsAvailableResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: registrar_address,
-            msg: to_binary(&RegistrarQueryMsg::IsAvailable { id })?,
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::IsAvailable { id })?,
         }))?;
     return Ok(is_available_response.available);
 }

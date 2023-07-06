@@ -1,3 +1,4 @@
+use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Binary, BlockInfo};
 use cw0::Expiration;
 use cw_storage_plus::{Index, IndexList, MultiIndex};
@@ -5,7 +6,8 @@ use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct InstantiateMsg {
     pub base_node: String,
     pub base_name: String,
@@ -18,52 +20,78 @@ pub struct InstantiateMsg {
     pub symbol: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum QueryMsg<Q: JsonSchema> {
+    #[returns(IsAvailableResponse)]
     IsAvailable {
         id: String,
     },
+    #[returns(GetExpiresResponse)]
     GetExpires {
         id: String,
     },
+    #[returns(GetBaseNodeResponse)]
     GetBaseNode {},
+    #[returns(GetRegistryResponse)]
     GetRegistry {},
+    #[returns(GetGracePeriodResponse)]
     GetGracePeriod {},
+    #[returns(ConfigResponse)]
     GetConfig {},
-    Minter {},
-
     /// Return the owner of the given token, error if token does not exist
-    /// Return type: OwnerOfResponse
+    #[returns(cw721::OwnerOfResponse)]
     OwnerOf {
         token_id: String,
         /// unset or false will filter out expired approvals, you must set to true to see them
         include_expired: Option<bool>,
     },
-    /// List all operators that can access all of the owner's tokens.
-    /// Return type: `ApprovedForAllResponse`
-    ApprovedForAll {
+    /// Return operator that can access all of the owner's tokens.
+    #[returns(cw721::ApprovalResponse)]
+    Approval {
+        token_id: String,
+        spender: String,
+        include_expired: Option<bool>,
+    },
+    /// Return approvals that a token has
+    #[returns(cw721::ApprovalsResponse)]
+    Approvals {
+        token_id: String,
+        include_expired: Option<bool>,
+    },
+    /// Return approval of a given operator for all tokens of an owner, error if not set
+    #[returns(cw721::OperatorResponse)]
+    Operator {
         owner: String,
-        /// unset or false will filter out expired approvals, you must set to true to see them
+        operator: String,
+        include_expired: Option<bool>,
+    },
+    /// List all operators that can access all of the owner's tokens
+    #[returns(cw721::OperatorsResponse)]
+    AllOperators {
+        owner: String,
+        /// unset or false will filter out expired items, you must set to true to see them
         include_expired: Option<bool>,
         start_after: Option<String>,
         limit: Option<u32>,
     },
     /// Total number of tokens issued
+    #[returns(cw721::NumTokensResponse)]
     NumTokens {},
 
     /// With MetaData Extension.
-    /// Returns top-level metadata about the contract: `ContractInfoResponse`
+    /// Returns top-level metadata about the contract
+    #[returns(cw721::ContractInfoResponse)]
     ContractInfo {},
     /// With MetaData Extension.
     /// Returns metadata about one particular token, based on *ERC721 Metadata JSON Schema*
-    /// but directly from the contract: `NftInfoResponse`
-    NftInfo {
-        token_id: String,
-    },
+    /// but directly from the contract
+    #[returns(cw721::NftInfoResponse<Q>)]
+    NftInfo { token_id: String },
     /// With MetaData Extension.
     /// Returns the result of both `NftInfo` and `OwnerOf` as one query as an optimization
-    /// for clients: `AllNftInfo`
+    /// for clients
+    #[returns(cw721::AllNftInfoResponse<Q>)]
     AllNftInfo {
         token_id: String,
         /// unset or false will filter out expired approvals, you must set to true to see them
@@ -72,7 +100,7 @@ pub enum QueryMsg {
 
     /// With Enumerable extension.
     /// Returns all tokens owned by the given address, [] if unset.
-    /// Return type: TokensResponse.
+    #[returns(cw721::TokensResponse)]
     Tokens {
         owner: String,
         start_after: Option<String>,
@@ -80,12 +108,21 @@ pub enum QueryMsg {
     },
     /// With Enumerable extension.
     /// Requires pagination. Lists all token_ids controlled by the contract.
-    /// Return type: TokensResponse.
+    #[returns(cw721::TokensResponse)]
     AllTokens {
         start_after: Option<String>,
         limit: Option<u32>,
     },
+
+    /// Return the minter
+    #[returns(MinterResponse)]
+    Minter {},
+
+    /// Extension query
+    #[returns(())]
+    Extension { msg: Q },
 }
+
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -154,32 +191,38 @@ pub enum ExecuteMsg<T> {
     Mint(MintMsg<T>),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct IsAvailableResponse {
     pub available: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct GetExpiresResponse {
     pub expires: u64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct GetBaseNodeResponse {
     pub base_node: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct GetRegistryResponse {
     pub registry: Addr,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct GetGracePeriodResponse {
     pub grace_period: u64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct ConfigResponse {
     pub grace_period: u64,
     pub registry_address: Addr,
@@ -188,7 +231,8 @@ pub struct ConfigResponse {
     pub base_name: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct OwnerOfResponse {
     /// Owner of the token
     pub owner: String,
@@ -196,7 +240,8 @@ pub struct OwnerOfResponse {
     pub approvals: Vec<Approval>,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct Approval {
     /// Account that can transfer/send the token
     pub spender: String,
@@ -204,39 +249,38 @@ pub struct Approval {
     pub expires: Expiration,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct ApprovedForAllResponse {
     pub operators: Vec<Approval>,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct NumTokensResponse {
     pub count: u64,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct ContractInfoResponse {
     pub name: String,
     pub symbol: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct NftInfoResponse<T> {
-    /// Identifies the asset to which this NFT represents
-    pub name: String,
-    /// Describes the asset to which this NFT represents
-    pub description: String,
-    /// "A URI pointing to a resource with mime type image/* representing the asset to which this
-    /// NFT represents. Consider making any images at a width between 320 and 1080 pixels and aspect
-    /// ratio between 1.91:1 and 4:5 inclusive.
-    /// TODO: Use https://docs.rs/url_serde for type-safety
-    pub image: Option<String>,
-
+    /// Universal resource identifier for this NFT
+    /// Should point to a JSON file that conforms to the ERC721
+    /// Metadata JSON Schema
+    pub token_uri: Option<String>,
     /// You can add any custom metadata here when you extend cw721-base
     pub extension: T,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct AllNftInfoResponse<T> {
     /// Who can transfer the token
     pub access: OwnerOfResponse,
@@ -244,7 +288,8 @@ pub struct AllNftInfoResponse<T> {
     pub info: NftInfoResponse<T>,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct TokensResponse {
     /// Contains all token_ids in lexicographical ordering
     /// If there are more than `limit`, use `start_from` in future queries
@@ -253,12 +298,14 @@ pub struct TokensResponse {
 }
 
 /// Shows who can mint these tokens
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+#[cw_serde]
 pub struct MinterResponse {
     pub minter: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct TokenInfo<T> {
     /// The owner of the newly minted NFT
     pub owner: Addr,
@@ -287,7 +334,7 @@ where
     T: Serialize + DeserializeOwned + Clone,
 {
     // pk goes to second tuple element
-    pub owner: MultiIndex<'a, (Addr, Vec<u8>), TokenInfo<T>, (Addr, TokenInfo<T>)>,
+    pub owner: MultiIndex<'a, (Addr, Vec<u8>), TokenInfo<T>, String>,
 }
 
 impl<'a, T> IndexList<TokenInfo<T>> for TokenIndexes<'a, T>
@@ -323,5 +370,6 @@ pub struct MintMsg<T> {
     pub extension: T,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct MigrateMsg {}

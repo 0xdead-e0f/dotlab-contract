@@ -16,7 +16,7 @@ library = []
 
 [dependencies]
 base64 = "0.21.2"
-chrono = "0.4.26"
+chrono = { version = "0.4.26", default-features = false, features = ["clock"] }
 cosmwasm-std = "1.2.7"
 cosmwasm-storage = "1.2.7"
 cw-storage-plus = "1.1.0"
@@ -29,6 +29,6 @@ serde = { version = "1.0.166", features = ["derive"], default-features = false }
 thiserror = "1.0.40"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 unicode-segmentation = "1.10.1"
+cosmwasm-schema = "1.2.7"
 
 [dev-dependencies]
-cosmwasm-schema = "1.2.7"

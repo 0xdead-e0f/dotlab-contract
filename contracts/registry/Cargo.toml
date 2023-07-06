@@ -1,5 +1,5 @@
 [package]
-name = "controller"
+name = "registry"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,24 +17,16 @@ crate-type = ["cdylib", "rlib"]
 [features]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
-# use library feature to disable all instantiate/execute/query exports
-library = []
 
 [dependencies]
+cosmwasm-schema = "1.2.7"
 cosmwasm-std = "1.2.7"
 cosmwasm-storage = "1.2.7"
 cw-storage-plus = "1.1.0"
-cw0 = "0.10.3"
 cw2 = "1.1.0"
+dotlabs = { version = "0.1.0", path = "../../packages/dotlabs" }
 hex = "0.4.3"
 schemars = "0.8.12"
 serde = { version = "1.0.166", features = ["derive"], default-features = false }
 thiserror = "1.0.40"
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
-dotlabs = { version = "0.1.0", path = "../../packages/dotlabs" }
-unicode-segmentation = "1.10.1"
-cosmwasm-schema = "1.2.7"
-sei-cosmwasm = "0.4.10"
-
-[dev-dependencies]
-
