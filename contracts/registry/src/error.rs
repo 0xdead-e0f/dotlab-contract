@@ -10,14 +10,8 @@ pub enum ContractError {
     Unauthorized {},
 
     #[error("NotOwner: Sender is {sender}, but owner is {owner}.")]
-    NotOwner {
-        sender: String,
-        owner: String
-    },
+    NotOwner { sender: String, owner: String },
 
     #[error("NotNodeOwner: Sender {sender} is not node owner of {node}.")]
-    NotNodeOwner {
-        sender: String,
-        node: String
-    },
+    NotNodeOwner { sender: String, node: String },
 }

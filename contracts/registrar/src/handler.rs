@@ -1,12 +1,11 @@
 use crate::error::ContractError;
 use crate::state::{Cw721Contract, CONFIG, CONTROLLERS, EXPIRIES};
 use crate::utils::decode_node_string_to_bytes;
-use cosmwasm_std::{to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg};
-use cw721::CustomMsg;
+use cosmwasm_std::{to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg, CustomMsg};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use tns::registry::ExecuteMsg as RegistryExecuteMsg;
-use tns::utils::{generate_image, get_label_from_name, get_token_id_from_label};
+use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
+use dotlabs::utils::{generate_image, get_label_from_name, get_token_id_from_label};
 
 fn only_owner(deps: Deps, info: MessageInfo) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
@@ -41,10 +40,12 @@ fn validate_id(id: String, name: String) -> Result<bool, ContractError> {
     Ok(true)
 }
 
-impl<'a, T, C> Cw721Contract<'a, T, C>
+impl<'a, T, C, E, Q> Cw721Contract<'a, T, C, E, Q>
 where
     T: Serialize + DeserializeOwned + Clone + Default,
     C: CustomMsg,
+    E: CustomMsg,
+    Q: CustomMsg,
 {
     pub fn register(
         &self,
@@ -78,17 +79,31 @@ where
             self.tokens.remove(deps.storage, &token_id)?;
         }
 
+        // let mint_response = self._mint(
+        //     deps,
+        //     env.clone(),
+        //     info,
+        //     owner.clone(),
+        //     name.clone() + "." + &config.base_name,
+        //     None,
+        //     Some(generate_image(
+        //         name.clone() + "." + &config.base_name,
+        //         env.block.time.seconds(),
+        //     )),
+        //     T::default(),
+        //     id.clone(),
+        // )?;
+        
         let mint_response = self._mint(
             deps,
             env.clone(),
             info,
             owner.clone(),
-            name.clone() + "." + &config.base_name,
-            None,
             Some(generate_image(
-                name.clone() + "." + &config.base_name,
-                env.block.time.seconds(),
-            )),
+                        name.clone() + "." + &config.base_name,
+                        env.block.time.seconds(),
+                    )),
+            0,
             T::default(),
             id.clone(),
         )?;

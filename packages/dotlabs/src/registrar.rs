@@ -24,13 +24,9 @@ pub struct InstantiateMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg<Q: JsonSchema> {
     #[returns(IsAvailableResponse)]
-    IsAvailable {
-        id: String,
-    },
+    IsAvailable { id: String },
     #[returns(GetExpiresResponse)]
-    GetExpires {
-        id: String,
-    },
+    GetExpires { id: String },
     #[returns(GetBaseNodeResponse)]
     GetBaseNode {},
     #[returns(GetRegistryResponse)]
@@ -123,7 +119,6 @@ pub enum QueryMsg<Q: JsonSchema> {
     Extension { msg: Q },
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg<T> {
@@ -131,7 +126,7 @@ pub enum ExecuteMsg<T> {
         id: String,
         owner: String,
         duration: u64,
-        name: String
+        name: String,
     },
     AddController {
         address: String,
@@ -142,7 +137,7 @@ pub enum ExecuteMsg<T> {
     SetConfig {
         grace_period: u64,
         registry_address: String,
-        owner: String
+        owner: String,
     },
     Renew {
         id: String,
@@ -170,7 +165,7 @@ pub enum ExecuteMsg<T> {
     Approve {
         spender: String,
         token_id: String,
-        expires: Option<Expiration>,
+        expires: Option<cw721::Expiration>,
     },
     /// Remove previously granted Approval
     Revoke {
@@ -181,7 +176,7 @@ pub enum ExecuteMsg<T> {
     /// If expiration is set, then this allowance has a time/height limit
     ApproveAll {
         operator: String,
-        expires: Option<Expiration>,
+        expires: Option<cw721::Expiration>,
     },
     /// Remove previously granted ApproveAll permission
     RevokeAll {
@@ -368,6 +363,20 @@ pub struct MintMsg<T> {
     pub image: Option<String>,
     /// Any custom extension used by this contract
     pub extension: T,
+
+    // /// Unique ID of the gift Card NFT
+    // pub token_id: String,
+    // /// The recipient of the newly minted NFT
+    // pub owner: String,
+    // /// The time to which funds and tokens will be locked in contract
+    // pub lockup_time: u128,
+    // /// Universal resource identifier for this NFT
+    // /// Should point to a JSON file that conforms to the ERC721
+    // /// Metadata JSON Schema
+    // pub token_uri: Option<String>,
+    // pub message: String,
+    // /// Any custom extension used by this contract
+    // pub extension: T,
 }
 
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

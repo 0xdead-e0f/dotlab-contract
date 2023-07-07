@@ -1,20 +1,23 @@
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 use crate::state::{CONFIG, EXPIRIES};
-use crate::utils::encode_node_bytes_to_string;
-use cosmwasm_std::{to_binary, Binary, BlockInfo, Deps, Env, Order, StdError, StdResult, CustomMsg};
+use crate::utils::{encode_node_bytes_to_string, decode_node_string_to_bytes};
+use cosmwasm_std::{
+    to_binary, Binary, BlockInfo, CustomMsg, Deps, Env, Order, StdError, StdResult,
+};
 use cw0::maybe_addr;
 use cw721::{
-    AllNftInfoResponse, ContractInfoResponse, Cw721Query,
-    Expiration, NftInfoResponse, NumTokensResponse, OwnerOfResponse, TokensResponse, OperatorResponse, OperatorsResponse, ApprovalResponse, ApprovalsResponse
+    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Cw721Query,
+    Expiration, NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse,
+    OwnerOfResponse, TokensResponse,
 };
 use cw_storage_plus::Bound;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 use dotlabs::registrar::{
-    GetBaseNodeResponse, GetExpiresResponse, GetRegistryResponse, IsAvailableResponse,
-    GetGracePeriodResponse, ConfigResponse
+    ConfigResponse, GetBaseNodeResponse, GetExpiresResponse, GetGracePeriodResponse,
+    GetRegistryResponse, IsAvailableResponse,
 };
 use dotlabs::registrar::{MinterResponse, QueryMsg};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
@@ -87,7 +90,7 @@ where
 
         Err(StdError::not_found("Approval not found"))
     }
-    
+
     fn operators(
         &self,
         deps: Deps,
@@ -114,7 +117,7 @@ where
             .collect();
         Ok(OperatorsResponse { operators: res? })
     }
-    
+
     fn approval(
         &self,
         deps: Deps,
@@ -153,7 +156,7 @@ where
 
         Ok(ApprovalResponse { approval })
     }
-    
+
     fn approvals(
         &self,
         deps: Deps,
@@ -184,21 +187,19 @@ where
     ) -> StdResult<TokensResponse> {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
         let start = start_after.map(Bound::exclusive);
-        
-        let owner_addr = deps.api.addr_validate(&owner)?;
-        let vv = Vec::<u8>::new();
+        // let start = start_after.map(|s| Bound::ExclusiveRaw(s.into()));
 
-        let pks: Vec<_> = self
+        let owner_addr = deps.api.addr_validate(&owner)?;
+
+        let tokens: Vec<String> = self
             .tokens
             .idx
             .owner
-            .prefix((owner_addr, vv))
-            .keys_raw(deps.storage, start, None, Order::Ascending)
+            .prefix(owner_addr)
+            .keys(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .collect();
+            .collect::<StdResult<Vec<_>>>()?;
 
-        let res: Result<Vec<_>, _> = pks.iter().map(|v| String::from_utf8(v.to_vec())).collect();
-        let tokens = res.map_err(StdError::invalid_utf8)?;
         Ok(TokensResponse { tokens })
     }
 
@@ -213,10 +214,11 @@ where
 
         let tokens: StdResult<Vec<String>> = self
             .tokens
-            .range_raw(deps.storage, start, None, Order::Ascending)
+            .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .map(|item| item.map(|(k, _)| String::from_utf8_lossy(&k).to_string()))
+            .map(|item| item.map(|(k, _)| k))
             .collect();
+
         Ok(TokensResponse { tokens: tokens? })
     }
 
@@ -361,7 +363,7 @@ where
             } => to_binary(&self.tokens(deps, owner, start_after, limit)?),
             QueryMsg::AllTokens { start_after, limit } => {
                 to_binary(&self.all_tokens(deps, start_after, limit)?)
-            },
+            }
             QueryMsg::Approval {
                 token_id,
                 spender,
@@ -378,7 +380,7 @@ where
                 include_expired,
             } => {
                 to_binary(&self.approvals(deps, env, token_id, include_expired.unwrap_or(false))?)
-            },
+            }
             QueryMsg::Extension { msg: _ } => Ok(Binary::default()),
         }
     }

@@ -10,15 +10,10 @@ pub enum ContractError {
     Unauthorized { description: Option<String> },
 
     #[error("NotOwner: Sender is {sender}, but owner is {owner}.")]
-    NotOwner {
-        sender: String,
-        owner: String
-    },
+    NotOwner { sender: String, owner: String },
 
     #[error("NotController: Sender {sender} is not controller.")]
-    NotController {
-        sender: String,
-    },
+    NotController { sender: String },
 
     #[error("token_id already claimed")]
     Claimed {},
@@ -30,9 +25,7 @@ pub enum ContractError {
     NotAvailable {},
 
     #[error("Burn burn: {msg}")]
-    Burned {
-        msg: String,
-    },
+    Burned { msg: String },
 
     #[error("BytesFormatError")]
     BytesFormatError {},

@@ -3,9 +3,9 @@ use cosmwasm_std::{
     from_binary, from_slice, to_binary, Coin, ContractResult, Decimal, OwnedDeps, Querier,
     QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery,
 };
-use std::collections::HashMap;
-use sei_cosmwasm::{SeiQuery, SeiQueryWrapper, SeiRoute};
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
+use sei_cosmwasm::{SeiQuery, SeiQueryWrapper, SeiRoute};
+use std::collections::HashMap;
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.

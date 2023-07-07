@@ -410,7 +410,7 @@ mod tests {
 
         let set_address_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: "registry_address".to_string(),
-            msg: to_binary(&ResolverExecuteMsg::SetTerraAddress {
+            msg: to_binary(&ResolverExecuteMsg::SetSeiAddress {
                 node: vec![
                     78, 137, 50, 222, 163, 237, 87, 141, 30, 30, 144, 123, 133, 152, 167, 161, 204,
                     44, 197, 227, 125, 124, 105, 133, 160, 177, 82, 121, 97, 207, 166, 156,
@@ -559,7 +559,7 @@ mod tests {
 
         let set_address_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: "registry_address".to_string(),
-            msg: to_binary(&ResolverExecuteMsg::SetTerraAddress {
+            msg: to_binary(&ResolverExecuteMsg::SetSeiAddress {
                 node: vec![
                     78, 137, 50, 222, 163, 237, 87, 141, 30, 30, 144, 123, 133, 152, 167, 161, 204,
                     44, 197, 227, 125, 124, 105, 133, 160, 177, 82, 121, 97, 207, 166, 156,

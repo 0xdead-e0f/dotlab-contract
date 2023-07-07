@@ -38,8 +38,8 @@ pub enum ExecuteMsg {
     },
     SetConfig {
         default_resolver: String,
-        owner: String
-    }
+        owner: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

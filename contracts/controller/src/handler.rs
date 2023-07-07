@@ -7,8 +7,8 @@ use crate::msg::{
 };
 use crate::state::{COMMITMENTS, CONFIG, REGISTER_FEE_DENOM};
 use cosmwasm_std::{
-    to_binary, BalanceResponse, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, BankMsg, CustomMsg,
+    to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, CustomMsg, Deps, DepsMut, Env,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
@@ -43,7 +43,7 @@ pub fn withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         }))?;
 
     let amount = balance_response.amount.amount;
-    
+
     // let total_asset = Asset {
     //     info: AssetInfo::NativeToken {
     //         denom: balance_response.amount.denom,
@@ -51,9 +51,9 @@ pub fn withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     //     amount,
     // };
     // let message = total_asset.into_msg(&deps.querier, info.sender);
-    
-    let message = BankMsg::Send { 
-        to_address: info.sender.to_string(), 
+
+    let message = BankMsg::Send {
+        to_address: info.sender.to_string(),
         amount: vec![balance_response.amount],
     };
 
@@ -282,7 +282,7 @@ fn _register(
     if let Some(address) = address {
         let set_address_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: resolver.unwrap_or(registry_address),
-            msg: to_binary(&ResolverExecuteMsg::SetTerraAddress {
+            msg: to_binary(&ResolverExecuteMsg::SetSeiAddress {
                 node: nodehash,
                 address: address,
             })?,

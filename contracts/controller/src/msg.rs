@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Uint128, Binary};
+use cosmwasm_std::{Addr, Binary, Uint128};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -58,7 +58,6 @@ pub enum ExecuteMsg {
     },
 }
 
-
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
@@ -67,9 +66,7 @@ pub enum QueryMsg {
     #[returns(Binary)]
     Registrar {},
     #[returns(Binary)]
-    CommitmentTimestamp {
-        commitment: String,
-    },
+    CommitmentTimestamp { commitment: String },
     #[returns(Binary)]
     GetCommitment {
         name: String,
@@ -79,10 +76,7 @@ pub enum QueryMsg {
         address: Option<String>,
     },
     #[returns(Binary)]
-    RentPrice {
-        name: String,
-        duration: u64,
-    },
+    RentPrice { name: String, duration: u64 },
     #[returns(Binary)]
     MaxCommitmentAge {},
     #[returns(Binary)]
@@ -90,21 +84,13 @@ pub enum QueryMsg {
     #[returns(Binary)]
     MinRegistrationDuration {},
     #[returns(Binary)]
-    IsValidName {
-        name: String,
-    },
+    IsValidName { name: String },
     #[returns(Binary)]
-    GetTokenId {
-        name: String,
-    },
+    GetTokenId { name: String },
     #[returns(Binary)]
-    GetNodehash {
-        name: String,
-    },
+    GetNodehash { name: String },
     #[returns(Binary)]
-    GetNodeInfo {
-        name: String,
-    },
+    GetNodeInfo { name: String },
     #[returns(Binary)]
     GetPrice {},
 }

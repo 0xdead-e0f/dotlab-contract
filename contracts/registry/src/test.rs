@@ -3,8 +3,12 @@ mod tests {
     use crate::error::ContractError;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary, Addr};
-    use dotlabs::registry::{ExecuteMsg, InstantiateMsg, OperatorResponse, QueryMsg, RecordResponse, ConfigResponse};
-    use dotlabs::utils::{convert_namehash_to_hex_string, namehash, keccak256, get_label_from_name};
+    use dotlabs::registry::{
+        ConfigResponse, ExecuteMsg, InstantiateMsg, OperatorResponse, QueryMsg, RecordResponse,
+    };
+    use dotlabs::utils::{
+        convert_namehash_to_hex_string, get_label_from_name, keccak256, namehash,
+    };
 
     #[test]
     fn proper_initialization() {
@@ -113,19 +117,22 @@ mod tests {
         let res: OperatorResponse = from_binary(&res).unwrap();
         assert_eq!(OperatorResponse { is_approve: false }, res);
 
-         // Non operator should not be able to set record
-         let info = mock_info("not_operator_address", &coins(0, "uusd"));
-         let msg = ExecuteMsg::SetRecord {
-             node: namehash("ust"),
-             owner: String::from("not_operator_address"),
-             resolver: Some(String::from("resolver_address")),
-             ttl: 1
-         };
-         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-         assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not_operator_address"),
-            node: format!("{:?}", namehash("ust"))
-        });
+        // Non operator should not be able to set record
+        let info = mock_info("not_operator_address", &coins(0, "uusd"));
+        let msg = ExecuteMsg::SetRecord {
+            node: namehash("ust"),
+            owner: String::from("not_operator_address"),
+            resolver: Some(String::from("resolver_address")),
+            ttl: 1,
+        };
+        let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not_operator_address"),
+                node: format!("{:?}", namehash("ust"))
+            }
+        );
 
         // Set operator to true
         let msg = ExecuteMsg::SetApprovalForAll {
@@ -147,7 +154,7 @@ mod tests {
             node: namehash("ust"),
             owner: String::from("operator_address"),
             resolver: Some(String::from("resolver_address")),
-            ttl: 1
+            ttl: 1,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
@@ -211,7 +218,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label, // alice label
             owner: String::from("controller_address"),
         };
@@ -242,13 +249,16 @@ mod tests {
             node: namehash("alice.ust"),
             owner: String::from("not_controller_address"),
             resolver: Some(String::from("resolver_address")),
-            ttl: 1
+            ttl: 1,
         };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not_controller_address"),
-            node: format!("{:?}", namehash("alice.ust"))
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not_controller_address"),
+                node: format!("{:?}", namehash("alice.ust"))
+            }
+        );
 
         // Can set record if sender is owner
         let info = mock_info("controller_address", &coins(0, "uusd"));
@@ -256,7 +266,7 @@ mod tests {
             node: namehash("alice.ust"),
             owner: String::from("controller_address"),
             resolver: Some(String::from("resolver_address")),
-            ttl: 1
+            ttl: 1,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
@@ -288,15 +298,18 @@ mod tests {
         // Do not pass authorised
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label, // alice label
             owner: String::from("registrar_address"),
         };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("registrar_address"),
-            node: format!("{:?}", namehash("ust"))
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("registrar_address"),
+                node: format!("{:?}", namehash("ust"))
+            }
+        );
 
         // Add UST permanent registrar
         let info = mock_info("not-creator", &coins(0, "uusd"));
@@ -309,13 +322,19 @@ mod tests {
             owner: String::from("registrar_address"),
         };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not-creator"),
-            node: format!("{:?}", vec![
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0,
-            ])
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not-creator"),
+                node: format!(
+                    "{:?}",
+                    vec![
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0,
+                    ]
+                )
+            }
+        );
 
         let info = mock_info("creator", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
@@ -350,20 +369,23 @@ mod tests {
         // Register alice.ust with not registrar address should fail
         let info = mock_info("not-registrar", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label, // alice label
             owner: String::from("controller_address"),
         };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not-registrar"),
-            node: format!("{:?}", namehash("ust"))
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not-registrar"),
+                node: format!("{:?}", namehash("ust"))
+            }
+        );
 
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label, // alice label
             owner: String::from("controller_address"),
         };
@@ -430,7 +452,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label
             owner: String::from("controller_address"),
         };
@@ -462,36 +484,45 @@ mod tests {
 
         //  Should fail if set ttl with non owner address
         let info = mock_info("not_controller_address", &coins(0, "uusd"));
-        let msg = ExecuteMsg::SetOwner { node: subnode.clone(), owner: String::from("new_owner") };
+        let msg = ExecuteMsg::SetOwner {
+            node: subnode.clone(),
+            owner: String::from("new_owner"),
+        };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not_controller_address"),
-            node: format!("{:?}", subnode)
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not_controller_address"),
+                node: format!("{:?}", subnode)
+            }
+        );
 
-         //  Should success if set ttl with owner address
-         let info = mock_info("controller_address", &coins(0, "uusd"));
-         let msg = ExecuteMsg::SetOwner { node: subnode.clone(), owner: String::from("new_owner") };
-         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
+        //  Should success if set ttl with owner address
+        let info = mock_info("controller_address", &coins(0, "uusd"));
+        let msg = ExecuteMsg::SetOwner {
+            node: subnode.clone(),
+            owner: String::from("new_owner"),
+        };
+        assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
-         // Check alice.ust record
-         let res = query(
-             deps.as_ref(),
-             mock_env(),
-             QueryMsg::GetRecord {
-                 name: String::from("alice.ust"),
-             },
-         )
-         .unwrap();
-         let value: RecordResponse = from_binary(&res).unwrap();
-         assert_eq!(
-             RecordResponse {
-                 owner: Addr::unchecked("new_owner"),
-                 resolver: Addr::unchecked("cosmos2contract"),
-                 ttl: 0
-             },
-             value
-         );
+        // Check alice.ust record
+        let res = query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::GetRecord {
+                name: String::from("alice.ust"),
+            },
+        )
+        .unwrap();
+        let value: RecordResponse = from_binary(&res).unwrap();
+        assert_eq!(
+            RecordResponse {
+                owner: Addr::unchecked("new_owner"),
+                resolver: Addr::unchecked("cosmos2contract"),
+                ttl: 0
+            },
+            value
+        );
     }
 
     #[test]
@@ -535,7 +566,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label
             owner: String::from("controller_address"),
         };
@@ -567,36 +598,45 @@ mod tests {
 
         //  Should fail if set ttl with non owner address
         let info = mock_info("not_controller_address", &coins(0, "uusd"));
-        let msg = ExecuteMsg::SetTTL { node: subnode.clone(), ttl: 3 };
+        let msg = ExecuteMsg::SetTTL {
+            node: subnode.clone(),
+            ttl: 3,
+        };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not_controller_address"),
-            node: format!("{:?}", subnode)
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not_controller_address"),
+                node: format!("{:?}", subnode)
+            }
+        );
 
-         //  Should success if set ttl with owner address
-         let info = mock_info("controller_address", &coins(0, "uusd"));
-         let msg = ExecuteMsg::SetTTL { node: subnode.clone(), ttl: 3 };
-         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
+        //  Should success if set ttl with owner address
+        let info = mock_info("controller_address", &coins(0, "uusd"));
+        let msg = ExecuteMsg::SetTTL {
+            node: subnode.clone(),
+            ttl: 3,
+        };
+        assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
-         // Check alice.ust record
-         let res = query(
-             deps.as_ref(),
-             mock_env(),
-             QueryMsg::GetRecord {
-                 name: String::from("alice.ust"),
-             },
-         )
-         .unwrap();
-         let value: RecordResponse = from_binary(&res).unwrap();
-         assert_eq!(
-             RecordResponse {
-                 owner: Addr::unchecked("controller_address"),
-                 resolver: Addr::unchecked("cosmos2contract"),
-                 ttl: 3
-             },
-             value
-         );
+        // Check alice.ust record
+        let res = query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::GetRecord {
+                name: String::from("alice.ust"),
+            },
+        )
+        .unwrap();
+        let value: RecordResponse = from_binary(&res).unwrap();
+        assert_eq!(
+            RecordResponse {
+                owner: Addr::unchecked("controller_address"),
+                resolver: Addr::unchecked("cosmos2contract"),
+                ttl: 3
+            },
+            value
+        );
     }
 
     #[test]
@@ -640,7 +680,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label
             owner: String::from("controller_address"),
         };
@@ -672,36 +712,45 @@ mod tests {
 
         //  Should fail if set resolver with non owner address
         let info = mock_info("not_controller_address", &coins(0, "uusd"));
-        let msg = ExecuteMsg::SetResolver { node: subnode.clone(), resolver: Some(String::from("new_resolver_address")) };
+        let msg = ExecuteMsg::SetResolver {
+            node: subnode.clone(),
+            resolver: Some(String::from("new_resolver_address")),
+        };
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(err, ContractError::NotNodeOwner {
-            sender: String::from("not_controller_address"),
-            node: format!("{:?}", subnode)
-        });
+        assert_eq!(
+            err,
+            ContractError::NotNodeOwner {
+                sender: String::from("not_controller_address"),
+                node: format!("{:?}", subnode)
+            }
+        );
 
-         //  Should success if set resolver with owner address
-         let info = mock_info("controller_address", &coins(0, "uusd"));
-         let msg = ExecuteMsg::SetResolver { node: subnode.clone(), resolver: Some(String::from("new_resolver_address")) };
-         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
+        //  Should success if set resolver with owner address
+        let info = mock_info("controller_address", &coins(0, "uusd"));
+        let msg = ExecuteMsg::SetResolver {
+            node: subnode.clone(),
+            resolver: Some(String::from("new_resolver_address")),
+        };
+        assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
-         // Check alice.ust record
-         let res = query(
-             deps.as_ref(),
-             mock_env(),
-             QueryMsg::GetRecord {
-                 name: String::from("alice.ust"),
-             },
-         )
-         .unwrap();
-         let value: RecordResponse = from_binary(&res).unwrap();
-         assert_eq!(
-             RecordResponse {
-                 owner: Addr::unchecked("controller_address"),
-                 resolver: Addr::unchecked("new_resolver_address"),
-                 ttl: 0
-             },
-             value
-         );
+        // Check alice.ust record
+        let res = query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::GetRecord {
+                name: String::from("alice.ust"),
+            },
+        )
+        .unwrap();
+        let value: RecordResponse = from_binary(&res).unwrap();
+        assert_eq!(
+            RecordResponse {
+                owner: Addr::unchecked("controller_address"),
+                resolver: Addr::unchecked("new_resolver_address"),
+                ttl: 0
+            },
+            value
+        );
     }
 
     #[test]
@@ -726,7 +775,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label
             owner: String::from("controller_address"),
         };
@@ -748,7 +797,7 @@ mod tests {
             deps.as_ref(),
             mock_env(),
             QueryMsg::GetRecordByNode {
-                node: namehash("alice.ust")
+                node: namehash("alice.ust"),
             },
         )
         .unwrap();
@@ -778,7 +827,7 @@ mod tests {
         // Register alice.ust
         let info = mock_info("registrar_address", &coins(0, "uusd"));
         let msg = ExecuteMsg::SetSubnodeOwner {
-            node: namehash("ust"), // .ust basenode
+            node: namehash("ust"),                              // .ust basenode
             label: get_label_from_name(&String::from("alice")), // alice label
             owner: String::from("controller_address"),
         };

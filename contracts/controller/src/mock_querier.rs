@@ -1,14 +1,15 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Addr, Coin, ContractResult, Decimal, OwnedDeps, Querier,
-    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery, StdResult, Binary, StdError,
+    from_binary, from_slice, to_binary, Addr, Binary, Coin, ContractResult, Decimal, OwnedDeps,
+    Querier, QuerierResult, QueryRequest, StdError, StdResult, SystemError, SystemResult, Uint128,
+    WasmQuery, Empty,
 };
-use schemars::JsonSchema;
-use std::collections::HashMap;
-use sei_cosmwasm::{SeiQueryWrapper};
 use dotlabs::registrar::{
     GetBaseNodeResponse, GetRegistryResponse, IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
 };
+use schemars::JsonSchema;
+use sei_cosmwasm::SeiQueryWrapper;
+use std::collections::HashMap;
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
 pub fn mock_dependencies(
@@ -76,7 +77,7 @@ impl WasmMockQuerier {
             QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: _,
                 msg,
-            }) => match from_binary::<RegistrarQueryMsg<WasmQuery>>(msg) {
+            }) => match from_binary::<RegistrarQueryMsg<Empty>>(msg) {
                 Ok(RegistrarQueryMsg::GetRegistry {}) => SystemResult::Ok(ContractResult::Ok(
                     to_binary(&GetRegistryResponse {
                         registry: Addr::unchecked("registry_address"),
@@ -85,7 +86,9 @@ impl WasmMockQuerier {
                 )),
                 Ok(RegistrarQueryMsg::GetBaseNode {}) => SystemResult::Ok(ContractResult::Ok(
                     to_binary(&GetBaseNodeResponse {
-                        base_node: String::from("749f2b479b45e5da8e4cbecd926ee9a6f78db5424fa6993b6ecababa5d736b12"),
+                        base_node: String::from(
+                            "749f2b479b45e5da8e4cbecd926ee9a6f78db5424fa6993b6ecababa5d736b12",
+                        ),
                     })
                     .unwrap(),
                 )),

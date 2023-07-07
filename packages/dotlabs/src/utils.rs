@@ -1,7 +1,7 @@
-use base64::{Engine as _, engine::general_purpose};
-use chrono::{DateTime, NaiveDateTime, Utc, NaiveDate, NaiveTime};
+use base64::{engine::general_purpose, Engine as _};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 use hex;
-use tiny_keccak::{Keccak, Hasher};
+use tiny_keccak::{Hasher, Keccak};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn keccak256(i: &[u8]) -> Vec<u8> {
@@ -28,7 +28,6 @@ pub fn namehash(name: &str) -> Vec<u8> {
     }
     let mut labels: Vec<&str> = name.split(".").collect();
     labels.reverse();
-    
 
     for label in labels.iter() {
         let mut labelhash = [0u8; 32];
@@ -73,8 +72,14 @@ pub fn generate_image(name: String, timestamp: u64) -> String {
     let random_number = hash[0];
     let color = COLORS[(random_number % n_color) as usize];
 
-    let dt_default = NaiveDateTime::new(NaiveDate::from_yo_opt(2000, 1).unwrap(), NaiveTime::from_hms_opt(0,0,0).unwrap());
-    let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(timestamp as i64, 0).unwrap_or(dt_default), Utc);
+    let dt_default = NaiveDateTime::new(
+        NaiveDate::from_yo_opt(2000, 1).unwrap(),
+        NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+    );
+    let dt = DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp_opt(timestamp as i64, 0).unwrap_or(dt_default),
+        Utc,
+    );
     // let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(timestamp as i64, 0), Utc);
     let date = dt.format("%d.%m.%Y").to_string();
     let graphemes = name.graphemes(true);

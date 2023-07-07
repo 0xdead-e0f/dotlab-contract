@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
 
-const LUNA_COIN_TYPE: u64 = 0x8000014a;
+const OUR_COIN_TYPE: u64 = 0x80001234;
 
 fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
@@ -64,21 +64,21 @@ pub fn set_address(
     Ok(Response::default())
 }
 
-pub fn set_terra_address(
+pub fn set_sei_address(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     node: Vec<u8>,
     address: String,
 ) -> Result<Response, ContractError> {
-    let terra_address = deps.api.addr_validate(address.as_str())?;
+    let sei_address = deps.api.addr_validate(address.as_str())?;
     return set_address(
         deps,
         env,
         info,
         node,
-        LUNA_COIN_TYPE,
-        terra_address.to_string(),
+        OUR_COIN_TYPE,
+        sei_address.to_string(),
     );
 }
 
@@ -92,8 +92,8 @@ pub fn query_address(
     Ok(AddressResponse { address: address })
 }
 
-pub fn query_terra_address(deps: Deps, env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
-    return query_address(deps, env, node, LUNA_COIN_TYPE);
+pub fn query_sei_address(deps: Deps, env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
+    return query_address(deps, env, node, OUR_COIN_TYPE);
 }
 
 pub fn set_text_data(

@@ -1,7 +1,7 @@
 use crate::error::ContractError;
-use crate::state::{Record, OPERATORS, RECORDS, CONFIG};
+use crate::state::{Record, CONFIG, OPERATORS, RECORDS};
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use dotlabs::registry::{OperatorResponse, RecordResponse, ConfigResponse};
+use dotlabs::registry::{ConfigResponse, OperatorResponse, RecordResponse};
 use dotlabs::utils::keccak256;
 use dotlabs::utils::namehash;
 
@@ -17,12 +17,16 @@ fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
     Ok(true)
 }
 
-fn only_authorized(deps: &DepsMut, info: &MessageInfo, node: &Vec<u8>) -> Result<bool, ContractError> {
+fn only_authorized(
+    deps: &DepsMut,
+    info: &MessageInfo,
+    node: &Vec<u8>,
+) -> Result<bool, ContractError> {
     let record_option = RECORDS.may_load(deps.storage, node.to_vec())?;
     let canonical_sender = deps.api.addr_canonicalize(info.sender.as_str())?;
     if let Some(record) = record_option {
         if record.owner == canonical_sender {
-            return Ok(true)
+            return Ok(true);
         }
 
         let operator_option = OPERATORS.may_load(
@@ -96,9 +100,9 @@ pub fn set_record(
     let owner = deps.api.addr_canonicalize(owner.as_str())?;
     let config = CONFIG.load(deps.storage)?;
     let default_resolver = deps.api.addr_humanize(&config.default_resolver)?;
-    let canonical_resolver = deps.api.addr_canonicalize(
-        resolver.unwrap_or(default_resolver.to_string()).as_str(),
-    )?;
+    let canonical_resolver = deps
+        .api
+        .addr_canonicalize(resolver.unwrap_or(default_resolver.to_string()).as_str())?;
     RECORDS.save(
         deps.storage,
         node,
@@ -148,9 +152,9 @@ pub fn set_resolver(
     let mut record = RECORDS.load(deps.storage, node.clone())?;
     let config = CONFIG.load(deps.storage)?;
     let default_resolver = deps.api.addr_humanize(&config.default_resolver)?;
-    let canonical_resolver = deps.api.addr_canonicalize(
-        resolver.unwrap_or(default_resolver.to_string()).as_str(),
-    )?;
+    let canonical_resolver = deps
+        .api
+        .addr_canonicalize(resolver.unwrap_or(default_resolver.to_string()).as_str())?;
     record.resolver = canonical_resolver;
     RECORDS.save(deps.storage, node.clone(), &record)?;
     Ok(Response::default())
@@ -262,8 +266,7 @@ pub fn set_config(
     Ok(Response::new()
         .add_attribute("method", "set_config")
         .add_attribute("default_resolver", default_resolver.clone().to_string())
-        .add_attribute("owner", owner.to_string())
-    )
+        .add_attribute("owner", owner.to_string()))
 }
 
 pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {

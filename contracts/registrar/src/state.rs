@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, BlockInfo, CanonicalAddr, StdResult, Storage, CustomMsg};
+use cosmwasm_std::{Addr, BlockInfo, CanonicalAddr, CustomMsg, StdResult, Storage};
 use cw721::{ContractInfoResponse, Cw721, Expiration};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 use schemars::JsonSchema;
@@ -47,7 +47,7 @@ where
             "operators",
             "tokens",
             "tokens__owner",
-            "total_created"
+            "total_created",
         )
     }
 }
@@ -65,7 +65,7 @@ where
         operator_key: &'a str,
         tokens_key: &'a str,
         tokens_owner_key: &'a str,
-        created_key: &'a str
+        created_key: &'a str,
     ) -> Self {
         let indexes = TokenIndexes {
             owner: MultiIndex::new(token_owner_idx, tokens_key, tokens_owner_key),
@@ -136,7 +136,7 @@ where
     T: Serialize + DeserializeOwned + Clone,
 {
     // pk goes to second tuple element
-    pub owner: MultiIndex<'a, (Addr, Vec<u8>), TokenInfo<T>, String>,
+    pub owner: MultiIndex<'a, Addr, TokenInfo<T>, String>,
 }
 
 impl<'a, T> IndexList<TokenInfo<T>> for TokenIndexes<'a, T>
@@ -149,8 +149,8 @@ where
     }
 }
 
-pub fn token_owner_idx<T>(d: &[u8], k: &TokenInfo<T>) -> (Addr, Vec<u8>) {
-    (k.owner.clone(), d.to_vec())
+pub fn token_owner_idx<T>(_pk: &[u8], d: &TokenInfo<T>) -> Addr {
+    d.owner.clone()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

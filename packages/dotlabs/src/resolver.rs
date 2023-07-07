@@ -16,7 +16,7 @@ pub enum ExecuteMsg {
         coin_type: u64,
         address: String,
     },
-    SetTerraAddress {
+    SetSeiAddress {
         node: Vec<u8>,
         address: String,
     },
@@ -41,7 +41,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetAddress { node: Vec<u8>, coin_type: u64 },
     GetTextData { node: Vec<u8>, key: String },
-    GetTerraAddress { node: Vec<u8> },
+    GetSeiAddress { node: Vec<u8> },
     GetContentHash { node: Vec<u8> },
     GetConfig {},
 }

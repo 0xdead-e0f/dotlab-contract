@@ -166,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn test_set_terra_address() {
+    fn test_set_sei_address() {
         let mut deps = mock_dependencies(&[]);
 
         let msg = InstantiateMsg {
@@ -178,7 +178,7 @@ mod tests {
 
         // Set address
         let info = mock_info("owner_address", &coins(0, "uusd"));
-        let msg = ExecuteMsg::SetTerraAddress {
+        let msg = ExecuteMsg::SetSeiAddress {
             node: namehash("alice.ust"),
             address: String::from("new_address"),
         };
@@ -186,7 +186,7 @@ mod tests {
 
         let query_msg = QueryMsg::GetAddress {
             node: namehash("alice.ust"),
-            coin_type: 0x8000014a,
+            coin_type: 0x80001234,
         };
 
         let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
