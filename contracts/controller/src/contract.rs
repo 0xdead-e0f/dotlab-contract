@@ -4,7 +4,7 @@ use crate::handler::{
     get_min_commitment_age, get_min_registration_duration, get_node_info_from_name,
     get_nodehash_from_name, get_owner, get_price, get_registrar, get_rent_price,
     get_token_id_from_name, owner_register, owner_renew, register, renew, set_config,
-    set_enable_registration, withdraw,
+    set_enable_registration, withdraw, add_whitelist, add_whitelist_by_owner, referal_register,
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
@@ -30,6 +30,7 @@ pub fn instantiate(
             tier1_price: msg.tier1_price,
             tier2_price: msg.tier2_price,
             tier3_price: msg.tier3_price,
+            whitelist_price: msg.whitelist_price,
             enable_registration: msg.enable_registration,
             registrar_address,
             owner,
@@ -58,6 +59,17 @@ pub fn execute(
             address,
         } => register(
             deps, env, info, name, owner, duration, secret, resolver, address,
+        ),
+        ExecuteMsg::ReferalRegister {
+            name,
+            owner,
+            duration,
+            secret,
+            resolver,
+            address,
+            referer, 
+        } => referal_register(
+            deps, env, info, name, owner, duration, secret, resolver, address,referer,
         ),
         ExecuteMsg::Renew { name, duration } => renew(deps, env, info, name, duration),
 
@@ -98,6 +110,8 @@ pub fn execute(
         ExecuteMsg::SetEnableRegistration {
             enable_registration,
         } => set_enable_registration(deps, env, info, enable_registration),
+        ExecuteMsg::AddWhiteList { address, name } => add_whitelist(deps, env, info, &address, &name),
+        ExecuteMsg::AddWhiteListByOwner { address, name } => add_whitelist_by_owner(deps, env, info, &address, &name),
     }
 }
 

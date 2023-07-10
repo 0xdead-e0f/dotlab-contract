@@ -113,8 +113,8 @@ where
             contract_addr: registry_address.to_string(),
             msg: to_binary(&RegistryExecuteMsg::SetSubnodeOwner {
                 node: config.base_node,
-                owner: owner.clone(),
                 label,
+                owner: owner.clone(),
             })?,
             funds: vec![],
         });

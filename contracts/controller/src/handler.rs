@@ -5,7 +5,7 @@ use crate::msg::{
     NodeInfoResponse, NodehashResponse, OwnerResponse, PriceResponse, RegistrarResponse,
     RentPriceResponse, TokenIdResponse,
 };
-use crate::state::{COMMITMENTS, CONFIG, REGISTER_FEE_DENOM};
+use crate::state::{COMMITMENTS, CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, CustomMsg, Deps, DepsMut, Env,
     MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
@@ -223,6 +223,7 @@ pub fn get_price(deps: Deps) -> StdResult<PriceResponse> {
         tier1_price: config.tier1_price,
         tier2_price: config.tier2_price,
         tier3_price: config.tier3_price,
+        whitelist_price: config.whitelist_price,
     })
 }
 
@@ -322,7 +323,7 @@ fn validate_register_fund(
     info: MessageInfo,
     name: String,
     duration: u64,
-) -> Result<(), ContractError> {
+) -> Result<Coin, ContractError> {
     let cost: Uint128 = get_cost(deps, name.clone(), duration)?;
     let base_fund = &Coin {
         denom: String::from(REGISTER_FEE_DENOM),
@@ -340,7 +341,7 @@ fn validate_register_fund(
         });
     }
 
-    Ok(())
+    Ok(fund.clone())
 }
 
 fn validate_enable_registration(deps: Deps) -> Result<(), ContractError> {
@@ -398,6 +399,95 @@ pub fn register(
         .add_attribute("label", format!("{:?}", label.clone()))
         .add_attribute("token_id", token_id)
         .add_attribute("nodehash", format!("{:?}", nodehash)))
+}
+
+pub fn referal_register(
+    mut deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    name: String,
+    owner: String,
+    duration: u64,
+    secret: String,
+    resolver: Option<String>,
+    address: Option<String>,
+    referer: Option<String>,
+) -> Result<Response, ContractError> {
+    validate_name(deps.as_ref(), name.clone())?;
+    validate_enable_registration(deps.as_ref())?;
+
+    let commitment_response = get_commitment(&name, &owner, &secret, &resolver, &address)?;
+    let commitment = commitment_response.commitment;
+    consume_commitment(deps.branch(), env.clone(), commitment)?;
+
+    let fund = validate_register_fund(
+        deps.as_ref(),
+        env.clone(),
+        info.clone(),
+        name.clone(),
+        duration.clone(),
+    )?;
+
+    let messages = _register(
+        deps.branch(),
+        env.clone(),
+        name.clone(),
+        owner.clone(),
+        duration,
+        resolver,
+        address,
+    )?;
+
+    match referer {
+        Some(referer) => {
+            send_referal_fund(deps.as_ref(), env, info, &fund, owner, referer);
+        },
+        None => {},
+    }
+
+    let label: Vec<u8> = get_label_from_name(&name);
+    let token_id = get_token_id_from_label(&label);
+    let nodehash = get_nodehash(deps.as_ref(), label.clone())?;
+
+    Ok(Response::new()
+        .add_messages(messages)
+        .add_attribute("method", "register")
+        .add_attribute("name", name)
+        .add_attribute("label", format!("{:?}", label.clone()))
+        .add_attribute("token_id", token_id)
+        .add_attribute("nodehash", format!("{:?}", nodehash)))
+}
+
+pub fn send_referal_fund(
+    deps: Deps,
+    _env: Env,
+    info: MessageInfo,
+    fund: &Coin,
+    owner: String,
+    referer: String,
+) {
+    let mut referal_fund = fund.clone();
+
+    if is_whitelisted_account(deps, referer.clone()) {
+        referal_fund.amount = referal_fund.amount.multiply_ratio(40u128, 100u128);   
+    } else {
+        if referer == info.sender.to_string() || referer == owner {
+            return ();
+        }
+        referal_fund.amount = referal_fund.amount.multiply_ratio(20u128, 100u128);   
+    }
+
+    BankMsg::Send { to_address: referer, amount: vec![referal_fund] };
+
+}
+
+pub fn is_whitelisted_account (deps: Deps, address: String) -> bool {
+    let username = WHITELIST
+        .may_load(deps.storage, address.clone());
+    match username {
+        Ok(_) => {return true},
+        Err(_) => {return false},
+    }
 }
 
 pub fn owner_register(
@@ -668,4 +758,58 @@ pub fn get_nodehash_from_name(deps: Deps, name: &String) -> StdResult<NodehashRe
     let label: Vec<u8> = get_label_from_name(&name);
     let node = get_nodehash(deps, label)?;
     Ok(NodehashResponse { node })
+}
+
+fn validate_whitelist_fund(
+    deps: Deps,
+    _env: Env,
+    info: MessageInfo,
+) -> Result<(), ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    let cost = Uint128::from(config.whitelist_price);
+    let base_fund = &Coin {
+        denom: String::from(REGISTER_FEE_DENOM),
+        amount: Uint128::from(0u128),
+    };
+    let fund = info
+        .funds
+        .iter()
+        .find(|fund| fund.denom == String::from(REGISTER_FEE_DENOM))
+        .unwrap_or(base_fund);
+    if fund.amount < cost {
+        return Err(ContractError::InsufficientFund {
+            amount: fund.amount,
+            required: cost,
+        });
+    }
+
+    Ok(())
+}
+
+pub fn add_whitelist(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    address: &String, 
+    name: &String
+) -> Result<Response, ContractError> {
+    validate_whitelist_fund(deps.as_ref(), env, info)?;
+    WHITELIST.save(deps.storage, address.clone(), &name)?;
+    Ok(Response::new()
+        .add_attribute("method", "add_white_list")
+        .add_attribute("address", address))
+}
+
+pub fn add_whitelist_by_owner(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    address: &String, 
+    name: &String
+) -> Result<Response, ContractError> {
+    only_owner(deps.as_ref(), &info)?;
+    WHITELIST.save(deps.storage, address.clone(), &name)?;
+    Ok(Response::new()
+        .add_attribute("method", "add_white_list")
+        .add_attribute("address", address))
 }

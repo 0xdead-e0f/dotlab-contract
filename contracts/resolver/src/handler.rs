@@ -1,5 +1,6 @@
 use crate::error::ContractError;
 use crate::state::CONTENT_HASH;
+use crate::state::NAMES;
 use crate::state::TEXT_DATA;
 use crate::state::{ADDRESSES, CONFIG};
 use cosmwasm_std::{
@@ -7,7 +8,9 @@ use cosmwasm_std::{
 };
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
+use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
+use dotlabs::utils::namehash;
 
 const OUR_COIN_TYPE: u64 = 0x80001234;
 
@@ -82,6 +85,20 @@ pub fn set_sei_address(
     );
 }
 
+pub fn set_name(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    address: String,
+    coin_type: u64,
+    name: String,
+) -> Result<Response, ContractError> {
+    let namehash = namehash(&name);
+    only_authorized(&deps, &info, &namehash)?;
+    NAMES.save(deps.storage, (address, coin_type), &name)?;
+    Ok(Response::default())
+}
+
 pub fn query_address(
     deps: Deps,
     _env: Env,
@@ -90,6 +107,16 @@ pub fn query_address(
 ) -> StdResult<AddressResponse> {
     let address = ADDRESSES.load(deps.storage, (node, coin_type))?;
     Ok(AddressResponse { address: address })
+}
+
+pub fn query_name(
+    deps: Deps,
+    _env: Env,
+    address: String,
+    coin_type: u64,
+) -> StdResult<NameResponse> {
+    let name= NAMES.load(deps.storage, (address, coin_type))?;
+    Ok(NameResponse { name })
 }
 
 pub fn query_sei_address(deps: Deps, env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {

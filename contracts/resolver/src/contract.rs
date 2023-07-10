@@ -1,7 +1,7 @@
 use crate::error::ContractError;
 use crate::handler::{
     get_config, query_address, query_content_hash, query_sei_address, query_text_data, set_address,
-    set_config, set_content_hash, set_sei_address, set_text_data,
+    set_config, set_content_hash, set_sei_address, set_text_data, query_name, set_name,
 };
 use crate::state::{Config, CONFIG};
 #[cfg(not(feature = "library"))]
@@ -42,6 +42,11 @@ pub fn execute(
             coin_type,
             address,
         } => set_address(deps, env, info, node, coin_type, address),
+        ExecuteMsg::SetName {
+            address,
+            coin_type,
+            name,
+        } => set_name(deps, env, info, address, coin_type, name),
         ExecuteMsg::SetSeiAddress { node, address } => {
             set_sei_address(deps, env, info, node, address)
         }
@@ -62,6 +67,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetAddress { node, coin_type } => {
             to_binary(&query_address(deps, env, node, coin_type)?)
+        }
+        QueryMsg::GetName { address, coin_type } => {
+            to_binary(&query_name(deps, env, address, coin_type)?)
         }
         QueryMsg::GetSeiAddress { node } => to_binary(&query_sei_address(deps, env, node)?),
         QueryMsg::GetTextData { node, key } => to_binary(&query_text_data(deps, env, node, key)?),

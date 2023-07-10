@@ -15,6 +15,8 @@ pub const CONFIG: Item<Config> = Item::new("CONFIG");
 
 pub const ADDRESSES: Map<(Vec<u8>, u64), String> = Map::new("ADDRESSES");
 
+pub const NAMES: Map<(String, u64), String> = Map::new("NAMES");
+
 pub const TEXT_DATA: Map<(Vec<u8>, String), String> = Map::new("TEXT");
 
 pub const CONTENT_HASH: Map<Vec<u8>, Vec<u8>> = Map::new("CONTENT_HASH");

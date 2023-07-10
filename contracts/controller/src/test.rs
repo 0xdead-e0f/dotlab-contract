@@ -28,6 +28,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -46,6 +47,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -72,6 +74,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -101,6 +104,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -129,6 +133,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -173,6 +178,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -211,6 +217,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -251,6 +258,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -302,6 +310,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -329,6 +338,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -512,6 +522,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -628,6 +639,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: false,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -734,6 +746,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -812,6 +825,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -881,6 +895,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -971,6 +986,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1019,6 +1035,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1054,6 +1071,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1084,6 +1102,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1151,6 +1170,7 @@ mod tests {
                 tier1_price: 6_000_000u64,
                 tier2_price: 5_000_000u64,
                 tier3_price: 4_000_000u64,
+                whitelist_price: 640_000_000u64,
             }
         );
     }
@@ -1167,6 +1187,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1207,6 +1228,7 @@ mod tests {
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
+            whitelist_price: 640_000_000u64,
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));

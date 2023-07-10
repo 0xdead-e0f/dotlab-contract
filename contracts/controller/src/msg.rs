@@ -10,6 +10,7 @@ pub struct InstantiateMsg {
     pub tier1_price: u64,
     pub tier2_price: u64,
     pub tier3_price: u64,
+    pub whitelist_price: u64,
     pub enable_registration: bool,
 }
 
@@ -25,6 +26,15 @@ pub enum ExecuteMsg {
         secret: String,
         resolver: Option<String>,
         address: Option<String>,
+    },
+    ReferalRegister {
+        name: String,
+        owner: String,
+        duration: u64,
+        secret: String,
+        resolver: Option<String>,
+        address: Option<String>,
+        referer: Option<String>,
     },
     OwnerRegister {
         name: String,
@@ -56,6 +66,14 @@ pub enum ExecuteMsg {
     SetEnableRegistration {
         enable_registration: bool,
     },
+    AddWhiteList {
+        address: String,
+        name: String,
+    },
+    AddWhiteListByOwner {
+        address: String, 
+        name: String,
+    }
 }
 
 #[cw_serde]
@@ -163,6 +181,7 @@ pub struct PriceResponse {
     pub tier1_price: u64,
     pub tier2_price: u64,
     pub tier3_price: u64,
+    pub whitelist_price: u64,
 }
 
 #[cw_serde]
