@@ -34,12 +34,18 @@ pub enum ExecuteMsg {
         registry_address: String,
         owner: String,
     },
+    SetName {
+        address: String,
+        coin_type: u64,
+        name: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetAddress { node: Vec<u8>, coin_type: u64 },
+    GetName { address: String, coin_type: u64 },
     GetTextData { node: Vec<u8>, key: String },
     GetSeiAddress { node: Vec<u8> },
     GetContentHash { node: Vec<u8> },
@@ -49,6 +55,11 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AddressResponse {
     pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct NameResponse {
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

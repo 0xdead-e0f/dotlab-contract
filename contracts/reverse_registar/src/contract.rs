@@ -1,7 +1,7 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use dotlabs::reverse_registar::{InstantiateMsg, ExecuteMsg};
-use cosmwasm_std::entry_point;
 use crate::error::ContractError;
+use cosmwasm_std::entry_point;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -10,7 +10,6 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    
     Ok(Response::default())
 }
 
@@ -22,13 +21,41 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::ClaimForAddr { address, owner, resolver } => todo!(),
+        ExecuteMsg::ClaimForAddr {
+            address,
+            owner,
+            resolver,
+        } => todo!(),
         ExecuteMsg::Claim { owner } => todo!(),
-        ExecuteMsg::ClaimForAddrWithSignature { address, owner, resolver, relayer, signature_expiry, signature } => todo!(),
+        ExecuteMsg::ClaimForAddrWithSignature {
+            address,
+            owner,
+            resolver,
+            relayer,
+            signature_expiry,
+            signature,
+        } => todo!(),
         ExecuteMsg::ClaimWithResolver { owner, resolver } => todo!(),
         ExecuteMsg::SetName { name } => todo!(),
-        ExecuteMsg::SetNameForAddr { address, owner, resolver, name } => todo!(),
-        ExecuteMsg::SetNameForAddrWithSignature { address, owner, resolver, relayer, signature_expiry, signature, name } => todo!(),
-        ExecuteMsg::SetConfig { interface_id, registry_address, owner } => todo!(),
+        ExecuteMsg::SetNameForAddr {
+            address,
+            owner,
+            resolver,
+            name,
+        } => todo!(),
+        ExecuteMsg::SetNameForAddrWithSignature {
+            address,
+            owner,
+            resolver,
+            relayer,
+            signature_expiry,
+            signature,
+            name,
+        } => todo!(),
+        ExecuteMsg::SetConfig {
+            interface_id,
+            registry_address,
+            owner,
+        } => todo!(),
     }
 }

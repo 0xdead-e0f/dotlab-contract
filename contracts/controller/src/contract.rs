@@ -1,10 +1,11 @@
 use crate::error::ContractError;
 use crate::handler::{
-    commit, get_commitment, get_commitment_timestamp, get_is_valid_name, get_max_commitment_age,
-    get_min_commitment_age, get_min_registration_duration, get_node_info_from_name,
-    get_nodehash_from_name, get_owner, get_price, get_registrar, get_rent_price,
-    get_token_id_from_name, owner_register, owner_renew, register, renew, set_config,
-    set_enable_registration, withdraw, add_whitelist, add_whitelist_by_owner, referal_register,
+    add_whitelist, add_whitelist_by_owner, commit, get_commitment, get_commitment_timestamp,
+    get_is_valid_name, get_max_commitment_age, get_min_commitment_age,
+    get_min_registration_duration, get_node_info_from_name, get_nodehash_from_name, get_owner,
+    get_price, get_registrar, get_rent_price, get_token_id_from_name, owner_register, owner_renew,
+    referal_register, register, renew, set_config, set_enable_registration, set_referal_percentage,
+    set_whitelist_price, withdraw,
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
@@ -31,6 +32,7 @@ pub fn instantiate(
             tier2_price: msg.tier2_price,
             tier3_price: msg.tier3_price,
             whitelist_price: msg.whitelist_price,
+            referal_percentage: msg.referal_percentage,
             enable_registration: msg.enable_registration,
             registrar_address,
             owner,
@@ -57,8 +59,9 @@ pub fn execute(
             secret,
             resolver,
             address,
+            description
         } => register(
-            deps, env, info, name, owner, duration, secret, resolver, address,
+            deps, env, info, name, owner, duration, secret, resolver, address,description
         ),
         ExecuteMsg::ReferalRegister {
             name,
@@ -67,9 +70,10 @@ pub fn execute(
             secret,
             resolver,
             address,
-            referer, 
+            referer,
+            description
         } => referal_register(
-            deps, env, info, name, owner, duration, secret, resolver, address,referer,
+            deps, env, info, name, owner, duration, secret, resolver, address, referer,description
         ),
         ExecuteMsg::Renew { name, duration } => renew(deps, env, info, name, duration),
 
@@ -105,13 +109,22 @@ pub fn execute(
             duration,
             resolver,
             address,
-        } => owner_register(deps, env, info, name, owner, duration, resolver, address),
+            description
+        } => owner_register(deps, env, info, name, owner, duration, resolver, address, description),
         ExecuteMsg::OwnerRenew { name, duration } => owner_renew(deps, env, info, name, duration),
         ExecuteMsg::SetEnableRegistration {
             enable_registration,
         } => set_enable_registration(deps, env, info, enable_registration),
-        ExecuteMsg::AddWhiteList { address, name } => add_whitelist(deps, env, info, &address, &name),
-        ExecuteMsg::AddWhiteListByOwner { address, name } => add_whitelist_by_owner(deps, env, info, &address, &name),
+        ExecuteMsg::AddWhiteList { ensname } => add_whitelist(deps, env, info, &ensname),
+        ExecuteMsg::AddWhiteListByOwner {
+            ensname,
+            referal_percentage,
+        } => add_whitelist_by_owner(deps, env, info, &ensname, referal_percentage),
+        ExecuteMsg::SetReferalPercentage {
+            normal_percentage,
+            whitelist_percentage,
+        } => set_referal_percentage(deps, env, info, normal_percentage, whitelist_percentage),
+        ExecuteMsg::SetWhitelistPrice { price } => set_whitelist_price(deps, env, info, price),
     }
 }
 

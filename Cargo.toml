@@ -1,6 +1,10 @@
 [workspace]
 members = ["packages/*", "contracts/*"]
 
+# exclude = [
+# "contracts/reverse_registar"
+# ]
+
 [profile.release]
 opt-level = 3
 debug = false

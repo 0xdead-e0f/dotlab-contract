@@ -1,8 +1,8 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Addr, Binary, Coin, ContractResult, Decimal, OwnedDeps,
-    Querier, QuerierResult, QueryRequest, StdError, StdResult, SystemError, SystemResult, Uint128,
-    WasmQuery, Empty,
+    from_binary, from_slice, to_binary, Addr, Binary, Coin, ContractResult, Decimal, Empty,
+    OwnedDeps, Querier, QuerierResult, QueryRequest, StdError, StdResult, SystemError,
+    SystemResult, Uint128, WasmQuery,
 };
 use dotlabs::registrar::{
     GetBaseNodeResponse, GetRegistryResponse, IsAvailableResponse, QueryMsg as RegistrarQueryMsg,

@@ -11,6 +11,7 @@ pub struct InstantiateMsg {
     pub tier2_price: u64,
     pub tier3_price: u64,
     pub whitelist_price: u64,
+    pub referal_percentage: (u32, u32),
     pub enable_registration: bool,
 }
 
@@ -26,6 +27,7 @@ pub enum ExecuteMsg {
         secret: String,
         resolver: Option<String>,
         address: Option<String>,
+        description: Option<String>,
     },
     ReferalRegister {
         name: String,
@@ -35,6 +37,7 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         address: Option<String>,
         referer: Option<String>,
+        description: Option<String>,
     },
     OwnerRegister {
         name: String,
@@ -42,6 +45,7 @@ pub enum ExecuteMsg {
         duration: u64,
         resolver: Option<String>,
         address: Option<String>,
+        description: Option<String>,
     },
     SetConfig {
         max_commitment_age: u64,
@@ -67,13 +71,19 @@ pub enum ExecuteMsg {
         enable_registration: bool,
     },
     AddWhiteList {
-        address: String,
-        name: String,
+        ensname: String,
     },
     AddWhiteListByOwner {
-        address: String, 
-        name: String,
-    }
+        ensname: String,
+        referal_percentage: Option<u32>,
+    },
+    SetReferalPercentage {
+        normal_percentage: u32,
+        whitelist_percentage: u32,
+    },
+    SetWhitelistPrice {
+        price: u64,
+    },
 }
 
 #[cw_serde]

@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub base_node: String,
     pub base_name: String,
+    pub base_uri: String, 
     pub registry_address: String,
     pub grace_period: Option<u64>,
 
@@ -29,6 +30,8 @@ pub enum QueryMsg<Q: JsonSchema> {
     GetExpires { id: String },
     #[returns(GetBaseNodeResponse)]
     GetBaseNode {},
+    #[returns(GetBaseUriResponse)]
+    GetBaseUri {},
     #[returns(GetRegistryResponse)]
     GetRegistry {},
     #[returns(GetGracePeriodResponse)]
@@ -127,6 +130,7 @@ pub enum ExecuteMsg<T> {
         owner: String,
         duration: u64,
         name: String,
+        extension: T,
     },
     AddController {
         address: String,
@@ -138,6 +142,9 @@ pub enum ExecuteMsg<T> {
         grace_period: u64,
         registry_address: String,
         owner: String,
+    },
+    SetBaseUri {
+        base_uri: String,
     },
     Renew {
         id: String,
@@ -204,6 +211,10 @@ pub struct GetBaseNodeResponse {
     pub base_node: String,
 }
 
+#[cw_serde]
+pub struct GetBaseUriResponse {
+    pub base_uri: String,
+}
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
 pub struct GetRegistryResponse {
@@ -307,14 +318,15 @@ pub struct TokenInfo<T> {
     /// Approvals are stored here, as we clear them all upon transfer and cannot accumulate much
     pub approvals: Vec<Approval>,
 
-    /// Identifies the asset to which this NFT represents
     pub name: String,
-    /// Describes the asset to which this NFT represents
     pub description: String,
-    /// A URI pointing to an image representing the asset
-    pub image: Option<String>,
+    /// Universal resource identifier for this NFT
+    /// Should point to a JSON file that conforms to the ERC721
+    /// Metadata JSON Schema
+    pub token_uri: Option<String>,
 
-    /// You can add any custom metadata here when you extend cw721-base
+    pub reward_claimed: u128,
+
     pub extension: T,
 }
 
@@ -347,9 +359,13 @@ pub fn token_owner_idx<T>(d: &TokenInfo<T>, k: Vec<u8>) -> (Addr, Vec<u8>) {
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug, Default)]
-pub struct Extension {}
+pub struct Extension {
+    pub name: String,
+    pub description: String,
+}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct MintMsg<T> {
     /// Unique ID of the NFT
     pub token_id: String,
@@ -360,10 +376,9 @@ pub struct MintMsg<T> {
     /// Describes the asset to which this NFT represents (may be empty)
     pub description: Option<String>,
     /// A URI pointing to an image representing the asset
-    pub image: Option<String>,
+    // pub image: Option<String>,
     /// Any custom extension used by this contract
     pub extension: T,
-
     // /// Unique ID of the gift Card NFT
     // pub token_id: String,
     // /// The recipient of the newly minted NFT

@@ -1,13 +1,13 @@
 use crate::error::ContractError;
 use crate::state::{Approval, Config, Cw721Contract, TokenInfo, CONFIG};
 use crate::utils::decode_node_string_to_bytes;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, CustomMsg};
+use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use cw721::{ContractInfoResponse, Cw721Execute, Cw721ReceiveMsg, Expiration};
+use dotlabs::registrar::{ExecuteMsg, Extension, InstantiateMsg, MintMsg};
+use dotlabs::utils::{generate_image, namehash};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use dotlabs::registrar::{ExecuteMsg, InstantiateMsg, MintMsg};
-use dotlabs::utils::{namehash, generate_image};
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:cw721-base";
@@ -49,6 +49,7 @@ where
                 owner,
                 base_node,
                 base_name,
+                base_uri: msg.base_uri,
                 registry_address,
             },
         )?;
@@ -77,17 +78,20 @@ where
             ExecuteMsg::RemoveController { address } => {
                 self.remove_controller(deps, env, info, address)
             }
-            ExecuteMsg::SetConfig { grace_period, registry_address, owner } => {
-                self.set_config(deps, env, info, grace_period, registry_address, owner)
-            }
-
+            ExecuteMsg::SetConfig {
+                grace_period,
+                registry_address,
+                owner,
+            } => self.set_config(deps, env, info, grace_period, registry_address, owner),
+            ExecuteMsg::SetBaseUri { base_uri } => self.set_baseuri(deps, env, info, base_uri),
             // Only controller
             ExecuteMsg::Register {
                 id,
                 owner,
                 duration,
                 name,
-            } => self.register(deps, env, info, id, owner, name, duration),
+                extension,
+            } => self.register(deps, env, info, id, owner, name, duration, extension),
             ExecuteMsg::Renew { id, duration } => self.renew(deps, env, info, id, duration),
 
             // User
@@ -134,8 +138,8 @@ where
         _env: Env,
         info: MessageInfo,
         owner: String,
-        // name: String,
-        // description: Option<String>,
+        name: String,
+        description: Option<String>,
         // image: Option<String>,
         token_uri: Option<String>,
         reward_claimed: u128,
@@ -145,8 +149,8 @@ where
         let token = TokenInfo::<T> {
             owner: deps.api.addr_validate(&owner)?,
             approvals: vec![],
-            // name: name,
-            // description: description.unwrap_or_default(),
+            name: name,
+            description: description.unwrap_or_default(),
             // image: image,
             extension: extension,
             token_uri: token_uri,
@@ -180,18 +184,17 @@ where
                 description: Some(String::from("sender is not minter")),
             });
         }
-        
+
         let config = CONFIG.load(deps.storage)?;
-        let timestamp = env.block.time.seconds();
+        // let timestamp = env.block.time.seconds();
         return self._mint(
             deps,
             env,
             info,
             msg.owner,
-            Some(generate_image(
-                msg.name.clone() + "." + &config.base_name,
-                timestamp,
-            )),
+            msg.name.clone() + "." + &config.base_name,
+            msg.description,
+            Some(msg.token_id.clone()),
             0,
             msg.extension,
             msg.token_id,
@@ -354,7 +357,7 @@ impl<'a, T, C, E, Q> Cw721Contract<'a, T, C, E, Q>
 where
     T: Serialize + DeserializeOwned + Clone,
     C: CustomMsg,
-    E: CustomMsg, 
+    E: CustomMsg,
     Q: CustomMsg,
 {
     pub fn _transfer_nft(

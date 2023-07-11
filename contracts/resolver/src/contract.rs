@@ -1,7 +1,7 @@
 use crate::error::ContractError;
 use crate::handler::{
-    get_config, query_address, query_content_hash, query_sei_address, query_text_data, set_address,
-    set_config, set_content_hash, set_sei_address, set_text_data, query_name, set_name,
+    get_config, query_address, query_content_hash, query_name, query_sei_address, query_text_data,
+    set_address, set_config, set_content_hash, set_name, set_sei_address, set_text_data,
 };
 use crate::state::{Config, CONFIG};
 #[cfg(not(feature = "library"))]

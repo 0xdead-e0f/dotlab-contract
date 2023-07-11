@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.linkedProjects": [
+        ".\\contracts\\reverse_registar\\Cargo.toml"
+    ]
+}

@@ -1,6 +1,6 @@
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 use crate::state::{CONFIG, EXPIRIES};
-use crate::utils::{encode_node_bytes_to_string, decode_node_string_to_bytes};
+use crate::utils::{decode_node_string_to_bytes, encode_node_bytes_to_string};
 use cosmwasm_std::{
     to_binary, Binary, BlockInfo, CustomMsg, Deps, Env, Order, StdError, StdResult,
 };
@@ -12,8 +12,8 @@ use cw721::{
 };
 use cw_storage_plus::Bound;
 use dotlabs::registrar::{
-    ConfigResponse, GetBaseNodeResponse, GetExpiresResponse, GetGracePeriodResponse,
-    GetRegistryResponse, IsAvailableResponse,
+    ConfigResponse, GetBaseNodeResponse, GetBaseUriResponse, GetExpiresResponse,
+    GetGracePeriodResponse, GetRegistryResponse, IsAvailableResponse,
 };
 use dotlabs::registrar::{MinterResponse, QueryMsg};
 use serde::de::DeserializeOwned;
@@ -40,9 +40,17 @@ where
 
     fn nft_info(&self, deps: Deps, token_id: String) -> StdResult<NftInfoResponse<T>> {
         let info = self.tokens.load(deps.storage, &token_id)?;
+        let base_uri = self.get_base_uri(deps)?;
+        let base_uri = base_uri.base_uri;
+        let token_uri;
+        if let Some(token_id) = info.token_uri {
+            token_uri = Some([base_uri, token_id].concat());
+        } else {
+            token_uri = None;
+        }
         Ok(NftInfoResponse {
             extension: info.extension,
-            token_uri: info.token_uri,
+            token_uri: token_uri,
         })
     }
 
@@ -230,6 +238,16 @@ where
         include_expired: bool,
     ) -> StdResult<AllNftInfoResponse<T>> {
         let info: TokenInfo<T> = self.tokens.load(deps.storage, &token_id)?;
+
+        let base_uri = self.get_base_uri(deps)?;
+        let base_uri = base_uri.base_uri;
+        let token_uri;
+        if let Some(token_id) = info.clone().token_uri {
+            token_uri = Some([base_uri, token_id].concat());
+        } else {
+            token_uri = None;
+        }
+
         Ok(AllNftInfoResponse {
             access: OwnerOfResponse {
                 owner: info.owner.to_string(),
@@ -237,7 +255,7 @@ where
             },
             info: NftInfoResponse {
                 extension: info.extension,
-                token_uri: info.token_uri,
+                token_uri: token_uri,
             },
         })
     }
@@ -279,7 +297,10 @@ where
             base_node: encode_node_bytes_to_string(base_node),
         })
     }
-
+    pub fn get_base_uri(&self, deps: Deps) -> StdResult<GetBaseUriResponse> {
+        let base_uri = CONFIG.load(deps.storage)?.base_uri;
+        Ok(GetBaseUriResponse { base_uri })
+    }
     pub fn get_registry(&self, deps: Deps) -> StdResult<GetRegistryResponse> {
         let registry_address = CONFIG.load(deps.storage)?.registry_address;
         let registry = deps.api.addr_humanize(&registry_address)?;
@@ -309,6 +330,7 @@ where
             QueryMsg::IsAvailable { id } => to_binary(&self.is_available(deps, &env, id)?),
             QueryMsg::GetExpires { id } => to_binary(&self.get_expires(deps, id)?),
             QueryMsg::GetBaseNode {} => to_binary(&self.get_base_node(deps)?),
+            QueryMsg::GetBaseUri {} => to_binary(&self.get_base_uri(deps)?),
             QueryMsg::GetRegistry {} => to_binary(&self.get_registry(deps)?),
             QueryMsg::GetGracePeriod {} => to_binary(&self.get_grace_period(deps)?),
             QueryMsg::GetConfig {} => to_binary(&self.get_config(deps)?),

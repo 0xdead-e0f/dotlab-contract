@@ -9,8 +9,8 @@ use cosmwasm_std::{
 use cw0::Expiration;
 use cw721;
 use cw721::{
-    Approval, ApprovalsResponse, ApprovalResponse, ContractInfoResponse, Cw721Query, Cw721ReceiveMsg,
-    NftInfoResponse, OwnerOfResponse,
+    Approval, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Cw721Query,
+    Cw721ReceiveMsg, NftInfoResponse, OwnerOfResponse,
 };
 use dotlabs::registrar::{
     ConfigResponse, ExecuteMsg, Extension, InstantiateMsg, IsAvailableResponse, MintMsg, QueryMsg,
@@ -32,6 +32,7 @@ fn setup_contract(deps: DepsMut<'_>) -> Cw721Contract<'static, Extension, Empty,
         base_node: UST_BASE_NODE.to_string(),
         registry_address: String::from("registry_address"),
         grace_period: None,
+        base_uri: String::from("https://dotman.lab/tokens/"),
     };
     let info = mock_info("creator", &[]);
     let res = contract.instantiate(deps, mock_env(), info, msg).unwrap();
@@ -51,6 +52,7 @@ fn proper_instantiation() {
         base_name: BASE_NAME.to_string(),
         registry_address: String::from("hellooo"),
         grace_period: None,
+        base_uri: String::from("https://dotman.lab/tokens/"),
     };
     let info = mock_info("creator", &[]);
 
@@ -95,8 +97,10 @@ fn minting() {
         owner: String::from("medusa"),
         name: name.clone(),
         description: Some(description.clone()),
-        image: None,
-        extension: Extension {},
+        extension: Extension {
+            name: name.clone(),
+            description: description.clone(),
+        },
     });
 
     // random cannot mint
@@ -130,15 +134,15 @@ fn minting() {
     let info = contract.nft_info(deps.as_ref(), token_id.clone()).unwrap();
 
     let timestamp = mock_env().block.time.seconds();
-    
+
     assert_eq!(
         info,
         NftInfoResponse::<Extension> {
-            token_uri: Some(generate_image(
-                name.clone() + ".ust" ,
-                timestamp,
-            )),
-            extension: Extension {},
+            token_uri: Some("https://dotman.lab/tokens/petrify".to_string()),
+            extension: Extension {
+                name: name.clone(),
+                description: description.clone()
+            },
         }
     );
 
@@ -160,8 +164,7 @@ fn minting() {
         owner: String::from("hercules"),
         name: "copy cat".into(),
         description: None,
-        image: None,
-        extension: Extension {},
+        extension: Extension { name, description },
     });
 
     let allowed = mock_info("creator", &[]);
@@ -189,10 +192,12 @@ fn transferring_nft() {
     let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
         token_id: token_id.clone(),
         owner: String::from("venus"),
-        name,
-        description: Some(description),
-        image: None,
-        extension: Extension {},
+        name: name.clone(),
+        description: Some(description.clone()),
+        extension: Extension {
+            name: name.clone(),
+            description: description.clone(),
+        },
     });
 
     let minter = mock_info("creator", &[]);
@@ -251,10 +256,9 @@ fn sending_nft() {
     let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
         token_id: token_id.clone(),
         owner: String::from("venus"),
-        name,
-        description: Some(description),
-        image: None,
-        extension: Extension {},
+        name: name.clone(),
+        description: Some(description.clone()),
+        extension: Extension { name, description },
     });
 
     let minter = mock_info("creator", &[]);
@@ -325,10 +329,9 @@ fn approving_revoking() {
     let mint_msg = ExecuteMsg::Mint(MintMsg::<Extension> {
         token_id: token_id.clone(),
         owner: String::from("demeter"),
-        name,
-        description: Some(description),
-        image: None,
-        extension: Extension {},
+        name: name.clone(),
+        description: Some(description.clone()),
+        extension: Extension { name, description },
     });
 
     let minter = mock_info("creator", &[]);
@@ -419,7 +422,7 @@ fn approving_revoking() {
     );
 }
 
-// 
+//
 #[test]
 fn query_tokens_by_owner() {
     let mut deps = mock_dependencies();
@@ -438,8 +441,10 @@ fn query_tokens_by_owner() {
         owner: demeter.clone(),
         name: "Growing power".to_string(),
         description: Some("Allows the owner the power to grow anything".to_string()),
-        image: None,
-        extension: Extension {},
+        extension: Extension {
+            name: "Growing power".to_string(),
+            description: "Allows the owner the power to grow anything".to_string(),
+        },
     });
     contract
         .execute(deps.as_mut(), mock_env(), minter.clone(), mint_msg)
@@ -450,8 +455,10 @@ fn query_tokens_by_owner() {
         owner: ceres.clone(),
         name: "More growing power".to_string(),
         description: Some("Allows the owner the power to grow anything even faster".to_string()),
-        image: None,
-        extension: Extension {},
+        extension: Extension {
+            name: "More growing power".to_string(),
+            description: "Allows the owner the power to grow anything even faster".to_string(),
+        },
     });
     contract
         .execute(deps.as_mut(), mock_env(), minter.clone(), mint_msg)
@@ -462,8 +469,10 @@ fn query_tokens_by_owner() {
         owner: demeter.clone(),
         name: "Sing a lullaby".to_string(),
         description: Some("Calm even the most excited children".to_string()),
-        image: None,
-        extension: Extension {},
+        extension: Extension {
+            name: "Sing a lullaby".to_string(),
+            description: "Calm even the most excited children".to_string(),
+        },
     });
     contract
         .execute(deps.as_mut(), mock_env(), minter, mint_msg)
@@ -512,6 +521,7 @@ fn test_is_available() {
         base_node: UST_BASE_NODE.to_string(),
         registry_address: String::from("hellooo"),
         grace_period: None,
+        base_uri: "https://dotman.lab/tokens/".to_string(),
     };
 
     let mut deps = mock_dependencies();
@@ -537,6 +547,7 @@ fn test_register() {
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,
+        base_uri: "https://dotman.lab/tokens/".to_string(),
     };
 
     let mut deps = mock_dependencies();
@@ -558,6 +569,10 @@ fn test_register() {
         owner: controller.clone(),
         duration: 100,
         name: "alice".to_string(),
+        extension: Extension {
+            name: "alice.to_string".to_string(),
+            description: "".to_string(),
+        },
     };
     assert_eq!(
         entry::execute(deps.as_mut(), mock_env(), info, msg).is_err(),
@@ -570,6 +585,10 @@ fn test_register() {
         owner: controller.clone(),
         duration: 100,
         name: "alice".to_string(),
+        extension: Extension {
+            name: "alice.to_string".to_string(),
+            description: "".to_string(),
+        },
     };
     let res = entry::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
@@ -595,9 +614,10 @@ fn test_register() {
     .unwrap();
     let nft_info_response: NftInfoResponse<Extension> = from_binary(&nft_info_query).unwrap();
     let timestamp = mock_env().block.time.seconds();
-    assert_eq!(nft_info_response.token_uri, Some(generate_image(
-        format!("")+"alice.ust",
-        timestamp,)));
+    assert_eq!(
+        nft_info_response.token_uri,
+        Some("https://dotman.lab/tokens/9c0257114eb9399a2985f8e75dad7600c5d89fe3824ffa99ec1c3eb8bf3b0501".to_string())
+    );
 
     assert_eq!(res.messages.len(), 1); // set subnode owner
 
@@ -625,6 +645,7 @@ fn test_reclaim() {
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,
+        base_uri: "https://dotman.lab/tokens/".to_string(),
     };
     let mut deps = mock_dependencies();
     let info = mock_info("creator", &coins(0, "uusd"));
@@ -645,6 +666,10 @@ fn test_reclaim() {
         owner: controller.clone(),
         duration: 100,
         name: "alice".to_string(),
+        extension: Extension {
+            name: "alice.to_string".to_string(),
+            description: "".to_string(),
+        },
     };
     entry::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
@@ -759,6 +784,7 @@ fn test_set_config() {
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,
+        base_uri: "https://dotman.lab/tokens/".to_string(),
     };
     let mut deps = mock_dependencies();
     let info = mock_info("creator", &coins(0, "uusd"));

@@ -11,6 +11,7 @@ pub struct Config {
     pub tier2_price: u64,
     pub tier3_price: u64,
     pub whitelist_price: u64,
+    pub referal_percentage: (u32, u32),
     pub enable_registration: bool,
     pub registrar_address: CanonicalAddr,
     pub owner: CanonicalAddr,
@@ -19,4 +20,4 @@ pub struct Config {
 pub const REGISTER_FEE_DENOM: &str = "uusd";
 pub const CONFIG: Item<Config> = Item::new("CONFIG");
 pub const COMMITMENTS: Map<String, u64> = Map::new("COMMITMENTS");
-pub const WHITELIST: Map<String, String> = Map::new("WHITELIST");
+pub const WHITELIST: Map<String, (Vec<u8>, u32)> = Map::new("WHITELIST");

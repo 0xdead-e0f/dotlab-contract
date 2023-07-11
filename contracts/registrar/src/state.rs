@@ -1,3 +1,4 @@
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, BlockInfo, CanonicalAddr, CustomMsg, StdResult, Storage};
 use cw721::{ContractInfoResponse, Cw721, Expiration};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
@@ -107,6 +108,8 @@ pub struct TokenInfo<T> {
     /// Approvals are stored here, as we clear them all upon transfer and cannot accumulate much
     pub approvals: Vec<Approval>,
 
+    pub name: String,
+    pub description: String,
     /// Universal resource identifier for this NFT
     /// Should point to a JSON file that conforms to the ERC721
     /// Metadata JSON Schema
@@ -159,6 +162,7 @@ pub struct Config {
     pub owner: CanonicalAddr,
     pub base_node: Vec<u8>,
     pub base_name: String,
+    pub base_uri: String,
     pub registry_address: CanonicalAddr,
 }
 

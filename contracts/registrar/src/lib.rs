@@ -1,15 +1,15 @@
 mod error;
+pub mod execute;
+pub mod handler;
 pub mod query;
 pub mod state;
 pub mod utils;
-pub mod execute;
-pub mod handler;
 
 pub use crate::error::ContractError;
 pub use crate::state::Cw721Contract;
 use cosmwasm_std::Empty;
 pub use dotlabs::registrar::{
-    ExecuteMsg, Extension, InstantiateMsg, MintMsg, MinterResponse, QueryMsg,MigrateMsg
+    ExecuteMsg, Extension, InstantiateMsg, MigrateMsg, MintMsg, MinterResponse, QueryMsg,
 };
 
 mod test;
@@ -18,7 +18,7 @@ mod test;
 pub mod entry {
     use super::*;
 
-    use cosmwasm_std::{entry_point};
+    use cosmwasm_std::entry_point;
     use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
     // This makes a conscious choice on the various generics used by the contract

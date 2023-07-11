@@ -16,7 +16,8 @@ use dotlabs::registrar::{
     ExecuteMsg as RegistrarExecuteMsg, Extension, GetBaseNodeResponse, GetRegistryResponse,
     IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
 };
-use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
+use dotlabs::registry::QueryMsg as RegistryQueryMsg;
+use dotlabs::registry::{ExecuteMsg as RegistryExecuteMsg, RecordResponse};
 use dotlabs::resolver::ExecuteMsg as ResolverExecuteMsg;
 use dotlabs::utils::{get_label_from_name, get_token_id_from_label, keccak256};
 use unicode_segmentation::UnicodeSegmentation;
@@ -128,6 +129,50 @@ pub fn set_enable_registration(
         .add_attribute("enable_registration", enable_registration.to_string()))
 }
 
+pub fn set_whitelist_price(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    price: u64,
+) -> Result<Response, ContractError> {
+    only_owner(deps.as_ref(), &info)?;
+    let mut config = CONFIG.load(deps.storage)?;
+    config.whitelist_price = price;
+    CONFIG.save(deps.storage, &config)?;
+    Ok(Response::new()
+        .add_attribute("method", "set_whitelist_price")
+        .add_attribute("whitelist_price", price.to_string()))
+}
+
+pub fn set_referal_percentage(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    normal_percentage: u32,
+    whitelist_percentage: u32,
+) -> Result<Response, ContractError> {
+    if normal_percentage > 50u32 {
+        return Err(ContractError::ReferalPercentageError {
+            description: Some(String::from("Normal percentage must be in 0~50")),
+        });
+    }
+
+    if whitelist_percentage > 50u32 || whitelist_percentage < 20u32 {
+        return Err(ContractError::ReferalPercentageError {
+            description: Some(String::from("Whitelist percentage must be in 20~50")),
+        });
+    }
+
+    only_owner(deps.as_ref(), &info)?;
+    let mut config = CONFIG.load(deps.storage)?;
+    config.referal_percentage = (normal_percentage, whitelist_percentage);
+    CONFIG.save(deps.storage, &config)?;
+    Ok(Response::new()
+        .add_attribute("method", "set_referal_percentage")
+        .add_attribute("normal_percentage", normal_percentage.to_string())
+        .add_attribute("whitelist_percentage", whitelist_percentage.to_string()))
+}
+
 pub fn commit(
     deps: DepsMut,
     env: Env,
@@ -235,6 +280,7 @@ fn _register(
     duration: u64,
     resolver: Option<String>,
     address: Option<String>,
+    description: Option<String>,
 ) -> Result<Vec<CosmosMsg>, ContractError> {
     let mut messages: Vec<CosmosMsg> = vec![];
 
@@ -255,6 +301,10 @@ fn _register(
             owner: env.contract.address.to_string(),
             name: name.clone(),
             duration,
+            extension: Extension {
+                name: name.clone(),
+                description: description.unwrap_or(String::from("")),
+            }
         })?,
         funds: vec![],
     });
@@ -362,6 +412,7 @@ pub fn register(
     secret: String,
     resolver: Option<String>,
     address: Option<String>,
+    description: Option<String>,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -386,6 +437,7 @@ pub fn register(
         duration,
         resolver,
         address,
+        description,
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -411,7 +463,8 @@ pub fn referal_register(
     secret: String,
     resolver: Option<String>,
     address: Option<String>,
-    referer: Option<String>,
+    referer_ensname: Option<String>,
+    description: Option<String>,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -436,18 +489,31 @@ pub fn referal_register(
         duration,
         resolver,
         address,
+        description,
     )?;
-
-    match referer {
-        Some(referer) => {
-            send_referal_fund(deps.as_ref(), env, info, &fund, owner, referer);
-        },
-        None => {},
-    }
 
     let label: Vec<u8> = get_label_from_name(&name);
     let token_id = get_token_id_from_label(&label);
-    let nodehash = get_nodehash(deps.as_ref(), label.clone())?;
+    let nodehash = get_nodehash(deps.as_ref(), label.clone());
+
+    if let Some(referer) = referer_ensname {
+        let result = send_referal_funds(deps.as_ref(), env, info, &fund, referer);
+
+        if let Ok(response) = result {
+            let referal_owner = response.attributes.get(0).unwrap().value.clone();
+            let fund_amount = response.attributes.get(1).unwrap().value.clone();
+
+            return Ok(Response::new()
+                .add_messages(messages)
+                .add_attribute("method", "register")
+                .add_attribute("name", name)
+                .add_attribute("label", format!("{:?}", label.clone()))
+                .add_attribute("token_id", token_id)
+                .add_attribute("nodehash", format!("{:?}", nodehash))
+                .add_attribute("owner", referal_owner)
+                .add_attribute("fund", fund_amount));
+        }
+    }
 
     Ok(Response::new()
         .add_messages(messages)
@@ -458,35 +524,71 @@ pub fn referal_register(
         .add_attribute("nodehash", format!("{:?}", nodehash)))
 }
 
-pub fn send_referal_fund(
+pub fn send_referal_funds(
     deps: Deps,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     fund: &Coin,
-    owner: String,
-    referer: String,
-) {
-    let mut referal_fund = fund.clone();
+    referer_ensname: String,
+) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    let registrar_address = deps
+        .api
+        .addr_humanize(&config.registrar_address)?
+        .to_string();
 
-    if is_whitelisted_account(deps, referer.clone()) {
-        referal_fund.amount = referal_fund.amount.multiply_ratio(40u128, 100u128);   
-    } else {
-        if referer == info.sender.to_string() || referer == owner {
-            return ();
-        }
-        referal_fund.amount = referal_fund.amount.multiply_ratio(20u128, 100u128);   
+    let label = get_label_from_name(&referer_ensname);
+    let nodehash = get_nodehash(deps, label)?;
+    let get_registry_response: GetRegistryResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registrar_address.clone(),
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetRegistry {})?,
+        }))?;
+    let registry_address = String::from(get_registry_response.registry);
+
+    let get_record_by_node_response: RecordResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registry_address.clone(),
+            msg: to_binary(&RegistryQueryMsg::GetRecordByNode {
+                node: nodehash.clone(),
+            })?,
+        }))?;
+
+    let referal_owner = get_record_by_node_response.owner;
+
+    let mut referal_fund = fund.clone();
+    referal_fund.amount = referal_fund
+        .amount
+        .multiply_ratio(config.referal_percentage.0 as u128, 100u128);
+
+    let result = is_whitelisted_account(deps, referer_ensname);
+
+    if result.0 {
+        referal_fund.amount = referal_fund
+            .amount
+            .multiply_ratio(result.2 as u128, 100u128);
     }
 
-    BankMsg::Send { to_address: referer, amount: vec![referal_fund] };
+    let amount = referal_fund.amount;
 
+    BankMsg::Send {
+        to_address: referal_owner.to_string(),
+        amount: vec![referal_fund],
+    };
+
+    Ok(Response::new()
+        .add_attribute("owner", referal_owner)
+        .add_attribute("fund", amount))
 }
 
-pub fn is_whitelisted_account (deps: Deps, address: String) -> bool {
-    let username = WHITELIST
-        .may_load(deps.storage, address.clone());
-    match username {
-        Ok(_) => {return true},
-        Err(_) => {return false},
+pub fn is_whitelisted_account(deps: Deps, ensname: String) -> (bool, Vec<u8>, u32) {
+    let account = WHITELIST.load(deps.storage, ensname.clone());
+
+    match account {
+        Ok(val) => {
+            return (true, val.0, val.1);
+        }
+        Err(_) => return (false, vec![], 0),
     }
 }
 
@@ -499,6 +601,7 @@ pub fn owner_register(
     duration: u64,
     resolver: Option<String>,
     address: Option<String>,
+    description: Option<String>,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
 
@@ -514,6 +617,7 @@ pub fn owner_register(
         duration,
         resolver,
         address,
+        description,
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -760,11 +864,7 @@ pub fn get_nodehash_from_name(deps: Deps, name: &String) -> StdResult<NodehashRe
     Ok(NodehashResponse { node })
 }
 
-fn validate_whitelist_fund(
-    deps: Deps,
-    _env: Env,
-    info: MessageInfo,
-) -> Result<(), ContractError> {
+fn validate_whitelist_fund(deps: Deps, _env: Env, info: MessageInfo) -> Result<(), ContractError> {
     let config = CONFIG.load(deps.storage)?;
     let cost = Uint128::from(config.whitelist_price);
     let base_fund = &Coin {
@@ -790,26 +890,95 @@ pub fn add_whitelist(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    address: &String, 
-    name: &String
+    ensname: &String,
 ) -> Result<Response, ContractError> {
     validate_whitelist_fund(deps.as_ref(), env, info)?;
-    WHITELIST.save(deps.storage, address.clone(), &name)?;
+
+    let config = CONFIG.load(deps.storage)?;
+    let registrar_address = deps
+        .api
+        .addr_humanize(&config.registrar_address)?
+        .to_string();
+
+    let label = get_label_from_name(ensname);
+
+    let get_registry_response: GetRegistryResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registrar_address.clone(),
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetRegistry {})?,
+        }))?;
+    let registry_address = String::from(get_registry_response.registry);
+
+    // Set resolver of the node at registry
+    let nodehash = get_nodehash(deps.as_ref(), label)?;
+    let get_record_by_node_response: RecordResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registry_address.clone(),
+            msg: to_binary(&RegistryQueryMsg::GetRecordByNode {
+                node: nodehash.clone(),
+            })?,
+        }))?;
+
+    WHITELIST.save(
+        deps.storage,
+        ensname.clone(),
+        &(nodehash, config.referal_percentage.1),
+    )?;
     Ok(Response::new()
         .add_attribute("method", "add_white_list")
-        .add_attribute("address", address))
+        .add_attribute("ensname", ensname)
+        .add_attribute("owner", get_record_by_node_response.owner))
 }
 
 pub fn add_whitelist_by_owner(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
-    address: &String, 
-    name: &String
+    ensname: &String,
+    refereal_percentage: Option<u32>,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
-    WHITELIST.save(deps.storage, address.clone(), &name)?;
+
+    let config = CONFIG.load(deps.storage)?;
+    let registrar_address = deps
+        .api
+        .addr_humanize(&config.registrar_address)?
+        .to_string();
+
+    let label = get_label_from_name(ensname);
+
+    let get_registry_response: GetRegistryResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registrar_address.clone(),
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetRegistry {})?,
+        }))?;
+    let registry_address = String::from(get_registry_response.registry);
+
+    // Set resolver of the node at registry
+    let nodehash = get_nodehash(deps.as_ref(), label)?;
+    let get_record_by_node_response: RecordResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registry_address.clone(),
+            msg: to_binary(&RegistryQueryMsg::GetRecordByNode {
+                node: nodehash.clone(),
+            })?,
+        }))?;
+
+    match refereal_percentage {
+        Some(value) => {
+            WHITELIST.save(deps.storage, ensname.clone(), &(nodehash, value))?;
+        }
+        None => {
+            WHITELIST.save(
+                deps.storage,
+                ensname.clone(),
+                &(nodehash, config.referal_percentage.1),
+            )?;
+        }
+    }
+
     Ok(Response::new()
         .add_attribute("method", "add_white_list")
-        .add_attribute("address", address))
+        .add_attribute("ensname", ensname)
+        .add_attribute("owner", get_record_by_node_response.owner))
 }

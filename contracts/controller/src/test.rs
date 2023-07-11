@@ -29,6 +29,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -48,6 +49,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -75,6 +77,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -105,6 +108,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -134,6 +138,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -179,6 +184,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -218,6 +224,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -259,6 +266,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -311,6 +319,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -339,6 +348,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -388,6 +398,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
@@ -400,6 +411,7 @@ mod tests {
                 owner: mock_env().contract.address.to_string(),
                 duration: duration.clone(),
                 name: name.clone(),
+                extension: Extension { name: name, description: String::from("") }
             })
             .unwrap(),
             funds: vec![],
@@ -506,6 +518,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
     }
@@ -523,6 +536,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -539,6 +553,7 @@ mod tests {
             duration: duration.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         let register_registrar_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -550,6 +565,7 @@ mod tests {
                 owner: mock_env().contract.address.to_string(),
                 duration: duration.clone(),
                 name: name.clone(),
+                extension: Extension { name: name, description: String::from("") }
             })
             .unwrap(),
             funds: vec![],
@@ -623,6 +639,7 @@ mod tests {
             duration: duration.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
     }
@@ -640,6 +657,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: false,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -689,6 +707,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
 
@@ -730,6 +749,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
     }
@@ -747,6 +767,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -801,6 +822,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
 
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
@@ -826,6 +848,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -857,6 +880,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
 
         let res = query(
@@ -896,6 +920,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -946,6 +971,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
+            description: None,
         };
 
         execute(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -987,6 +1013,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1036,6 +1063,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1072,6 +1100,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1103,6 +1132,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1188,6 +1218,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));
@@ -1229,6 +1260,7 @@ mod tests {
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
             whitelist_price: 640_000_000u64,
+            referal_percentage: (20, 40),
             enable_registration: true,
         };
         let info = mock_info("creator", &coins(0, "uusd"));

@@ -115,7 +115,7 @@ pub fn query_name(
     address: String,
     coin_type: u64,
 ) -> StdResult<NameResponse> {
-    let name= NAMES.load(deps.storage, (address, coin_type))?;
+    let name = NAMES.load(deps.storage, (address, coin_type))?;
     Ok(NameResponse { name })
 }
 

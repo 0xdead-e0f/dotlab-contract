@@ -1,11 +1,13 @@
 use crate::error::ContractError;
 use crate::state::{Cw721Contract, CONFIG, CONTROLLERS, EXPIRIES};
 use crate::utils::decode_node_string_to_bytes;
-use cosmwasm_std::{to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg, CustomMsg};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use cosmwasm_std::{
+    to_binary, CosmosMsg, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg,
+};
 use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
 use dotlabs::utils::{generate_image, get_label_from_name, get_token_id_from_label};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 fn only_owner(deps: Deps, info: MessageInfo) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
@@ -25,7 +27,7 @@ fn only_controller(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError
         .unwrap_or(false);
     if !is_controller {
         return Err(ContractError::NotController {
-            sender: info.sender.to_string()
+            sender: info.sender.to_string(),
         });
     }
     Ok(is_controller)
@@ -56,6 +58,7 @@ where
         owner: String,
         name: String,
         duration: u64,
+        extension: T,
     ) -> Result<Response<C>, ContractError> {
         let mut messages: Vec<CosmosMsg<C>> = vec![];
         only_controller(deps.as_ref(), &info)?;
@@ -93,18 +96,16 @@ where
         //     T::default(),
         //     id.clone(),
         // )?;
-        
         let mint_response = self._mint(
             deps,
             env.clone(),
             info,
             owner.clone(),
-            Some(generate_image(
-                        name.clone() + "." + &config.base_name,
-                        env.block.time.seconds(),
-                    )),
+            name.clone() + "." + &config.base_name,
+            None,
+            Some(id.clone()),
             0,
-            T::default(),
+            extension,
             id.clone(),
         )?;
 
@@ -178,6 +179,22 @@ where
         Ok(Response::new()
             .add_attribute("method", "add_controller")
             .add_attribute("controller", address))
+    }
+
+    pub fn set_baseuri(
+        &self,
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        base_uri: String,
+    ) -> Result<Response<C>, ContractError> {
+        only_owner(deps.as_ref(), info)?;
+        let mut config = CONFIG.load(deps.storage)?;
+        config.base_uri = base_uri.clone();
+        CONFIG.save(deps.storage, &config)?;
+        Ok(Response::new()
+            .add_attribute("method", "set_config")
+            .add_attribute("base_uri", base_uri.clone()))
     }
 
     pub fn set_config(
