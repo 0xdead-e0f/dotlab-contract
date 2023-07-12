@@ -127,10 +127,7 @@ pub fn set_name_for_addr(
 
     let set_name_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: resolver_address.to_string(),
-        msg: to_binary(&ResolverMsg::SetName {
-            address,
-            name,
-        })?,
+        msg: to_binary(&ResolverMsg::SetName { address, name })?,
         funds: vec![],
     });
     Ok(Response::new()

@@ -90,13 +90,7 @@ pub fn set_sei_address(
     address: String,
 ) -> Result<Response, ContractError> {
     let sei_address = deps.api.addr_validate(address.as_str())?;
-    return set_address(
-        deps,
-        env,
-        info,
-        node,
-        sei_address.to_string(),
-    );
+    return set_address(deps, env, info, node, sei_address.to_string());
 }
 
 pub fn set_name(
@@ -115,29 +109,17 @@ pub fn set_name(
     Ok(Response::default())
 }
 
-pub fn query_address(
-    deps: Deps,
-    _env: Env,
-    node: Vec<u8>,
-) -> StdResult<AddressResponse> {
+pub fn query_address(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
     let address = ADDRESSES.load(deps.storage, node)?;
     Ok(AddressResponse { address: address })
 }
 
-pub fn query_avatar(
-    deps: Deps,
-    _env: Env,
-    node: Vec<u8>,
-) -> StdResult<AvatarResponse> {
+pub fn query_avatar(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AvatarResponse> {
     let avatar_uri = AVATARS.load(deps.storage, node)?;
     Ok(AvatarResponse { avatar_uri })
 }
 
-pub fn query_name(
-    deps: Deps,
-    _env: Env,
-    address: String,
-) -> StdResult<NameResponse> {
+pub fn query_name(deps: Deps, _env: Env, address: String) -> StdResult<NameResponse> {
     let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
     let name = NAMES.load(deps.storage, address_namehash)?;
     Ok(NameResponse { name })

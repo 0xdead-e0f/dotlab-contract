@@ -49,7 +49,7 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetAddress { node: Vec<u8> },
-    GetAvatar {node: Vec<u8> },
+    GetAvatar { node: Vec<u8> },
     GetName { address: String },
     GetTextData { node: Vec<u8>, key: String },
     GetSeiAddress { node: Vec<u8> },

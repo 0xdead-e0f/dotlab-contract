@@ -410,6 +410,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
@@ -533,6 +534,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
     }
@@ -570,6 +572,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         let register_registrar_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -659,6 +662,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
     }
@@ -729,6 +733,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
 
@@ -771,6 +776,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
     }
@@ -846,6 +852,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
 
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
@@ -906,6 +913,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
 
         let res = query(
@@ -999,6 +1007,7 @@ mod tests {
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             description: None,
+            reverse_record: false,
         };
 
         execute(deps.as_mut(), mock_env(), info, msg).unwrap();

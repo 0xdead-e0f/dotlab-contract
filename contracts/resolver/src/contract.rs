@@ -1,7 +1,8 @@
 use crate::error::ContractError;
 use crate::handler::{
-    get_config, query_address, query_content_hash, query_name, query_sei_address, query_text_data,
-    set_address, set_config, set_content_hash, set_name, set_sei_address, set_text_data, set_avatar, query_avatar,
+    get_config, query_address, query_avatar, query_content_hash, query_name, query_sei_address,
+    query_text_data, set_address, set_avatar, set_config, set_content_hash, set_name,
+    set_sei_address, set_text_data,
 };
 use crate::state::{Config, CONFIG};
 #[cfg(not(feature = "library"))]
@@ -39,15 +40,9 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetAddress {
-            node,
-            address,
-        } => set_address(deps, env, info, node, address),
+        ExecuteMsg::SetAddress { node, address } => set_address(deps, env, info, node, address),
         ExecuteMsg::SetAvatar { node, avatar_uri } => set_avatar(deps, env, info, node, avatar_uri),
-        ExecuteMsg::SetName {
-            address,
-            name,
-        } => set_name(deps, env, info, address, name),
+        ExecuteMsg::SetName { address, name } => set_name(deps, env, info, address, name),
         ExecuteMsg::SetSeiAddress { node, address } => {
             set_sei_address(deps, env, info, node, address)
         }
@@ -60,22 +55,24 @@ pub fn execute(
             registry_address,
             reverse_registrar,
             owner,
-        } => set_config(deps, env, info, interface_id, registry_address, reverse_registrar, owner),
+        } => set_config(
+            deps,
+            env,
+            info,
+            interface_id,
+            registry_address,
+            reverse_registrar,
+            owner,
+        ),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetAddress { node } => {
-            to_binary(&query_address(deps, env, node)?)
-        }
-        QueryMsg::GetAvatar { node } => {
-            to_binary(&query_avatar(deps, env, node)?)
-        }
-        QueryMsg::GetName { address } => {
-            to_binary(&query_name(deps, env, address)?)
-        }
+        QueryMsg::GetAddress { node } => to_binary(&query_address(deps, env, node)?),
+        QueryMsg::GetAvatar { node } => to_binary(&query_avatar(deps, env, node)?),
+        QueryMsg::GetName { address } => to_binary(&query_name(deps, env, address)?),
         QueryMsg::GetSeiAddress { node } => to_binary(&query_sei_address(deps, env, node)?),
         QueryMsg::GetTextData { node, key } => to_binary(&query_text_data(deps, env, node, key)?),
         QueryMsg::GetContentHash { node } => to_binary(&query_content_hash(deps, env, node)?),

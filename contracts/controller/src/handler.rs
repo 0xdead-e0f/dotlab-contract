@@ -84,7 +84,9 @@ pub fn set_config(
     let mut config = CONFIG.load(deps.storage)?;
 
     let registrar_address = deps.api.addr_canonicalize(registrar_address.as_str())?;
-    let reverse_registrar_address = deps.api.addr_canonicalize(reverse_registrar_address.as_str())?;
+    let reverse_registrar_address = deps
+        .api
+        .addr_canonicalize(reverse_registrar_address.as_str())?;
     let owner = deps.api.addr_canonicalize(owner.as_str())?;
 
     config.max_commitment_age = max_commitment_age;
@@ -376,7 +378,6 @@ fn _register(
     }
 
     Ok(messages)
-    
 }
 
 fn validate_register_fund(
@@ -425,7 +426,7 @@ pub fn register(
     resolver: Option<String>,
     address: Option<String>,
     description: Option<String>,
-    reverse_record: bool
+    reverse_record: bool,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -451,7 +452,7 @@ pub fn register(
         resolver,
         address,
         description,
-        reverse_record
+        reverse_record,
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -479,7 +480,7 @@ pub fn referal_register(
     address: Option<String>,
     referer_ensname: Option<String>,
     description: Option<String>,
-    reverse_record: bool
+    reverse_record: bool,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -618,7 +619,7 @@ pub fn owner_register(
     resolver: Option<String>,
     address: Option<String>,
     description: Option<String>,
-    reverse_record: bool
+    reverse_record: bool,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
 
@@ -635,7 +636,7 @@ pub fn owner_register(
         resolver,
         address,
         description,
-        reverse_record
+        reverse_record,
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -1001,22 +1002,28 @@ pub fn add_whitelist_by_owner(
         .add_attribute("owner", get_record_by_node_response.owner))
 }
 
-fn set_reverse_record(deps: DepsMut, name: String, address: String, resolver: Option<String>, owner: String)
-    -> Result<Response, ContractError>{
+fn set_reverse_record(
+    deps: DepsMut,
+    name: String,
+    address: String,
+    resolver: Option<String>,
+    owner: String,
+) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
     let reverse_registrar_address = deps
-        .api.addr_humanize(&config.reverse_registrar_address)?
+        .api
+        .addr_humanize(&config.reverse_registrar_address)?
         .to_string();
-    
-    let _set_reverse_record_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute { 
-        contract_addr: reverse_registrar_address, 
-        msg: to_binary(&ReverseRegistrarExecuteMsg::SetNameForAddr{
+
+    let _set_reverse_record_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: reverse_registrar_address,
+        msg: to_binary(&ReverseRegistrarExecuteMsg::SetNameForAddr {
             address,
             owner,
             resolver,
             name: name + &".sei".to_string(),
-    })?,
-        funds: vec![], 
+        })?,
+        funds: vec![],
     });
     Ok(Response::default())
 }

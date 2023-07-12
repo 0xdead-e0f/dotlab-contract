@@ -57,7 +57,7 @@ pub struct NameResponse {
 #[cw_serde]
 pub struct ConfigResponse {
     pub registry_address: Addr,
-    pub resolver_address:Addr,
+    pub resolver_address: Addr,
     pub owner: Addr,
 }
 

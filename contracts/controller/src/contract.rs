@@ -21,9 +21,11 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let registrar_address = deps.api.addr_canonicalize(msg.registrar_address.as_str())?;
-    let reverse_registrar_address = deps.api.addr_canonicalize(msg.reverse_registrar_address.as_str())?;
+    let reverse_registrar_address = deps
+        .api
+        .addr_canonicalize(msg.reverse_registrar_address.as_str())?;
     let owner = deps.api.addr_canonicalize(info.sender.as_str())?;
-    
+
     CONFIG.save(
         deps.storage,
         &Config {
