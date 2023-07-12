@@ -1,7 +1,9 @@
 use crate::error::ContractError;
-use crate::handler::{claim, claim_for_addr, set_name, set_name_for_addr, get_config, set_config, get_reverse_record};
+use crate::handler::{
+    claim, claim_for_addr, get_config, get_reverse_record, set_config, set_name, set_name_for_addr,
+};
 use crate::state::{Config, CONFIG};
-use cosmwasm_std::{entry_point, to_binary, StdResult, Binary, Deps};
+use cosmwasm_std::{entry_point, to_binary, Binary, Deps, StdResult};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
@@ -50,19 +52,14 @@ pub fn execute(
             resolver_address,
             registry_address,
             owner,
-        } => set_config(deps, env, info, resolver_address, registry_address, owner)
+        } => set_config(deps, env, info, resolver_address, registry_address, owner),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    _env: Env,
-    _info: MessageInfo,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, _info: MessageInfo, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetConfig {  } => to_binary(&get_config(deps)?),
+        QueryMsg::GetConfig {} => to_binary(&get_config(deps)?),
         QueryMsg::GetReverseRecord { node } => to_binary(&get_reverse_record(deps, node)?),
     }
 }

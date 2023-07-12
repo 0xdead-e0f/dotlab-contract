@@ -1,10 +1,13 @@
 use crate::{error::ContractError, state::CONFIG};
-use cosmwasm_std::{to_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, WasmMsg, Deps, StdResult, WasmQuery, QueryRequest};
+use cosmwasm_std::{
+    to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryRequest, Response, StdResult,
+    WasmMsg, WasmQuery,
+};
 use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
-use dotlabs::resolver::ExecuteMsg as ResolverMsg;
-use dotlabs::reverse_registar::ConfigResponse;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::registry::RecordResponse as RegistryRecordResponse;
+use dotlabs::resolver::ExecuteMsg as ResolverMsg;
+use dotlabs::reverse_registar::ConfigResponse;
 use dotlabs::utils::{get_label_from_name, namehash};
 use dotlabs::OUR_COIN_TYPE;
 
@@ -82,10 +85,7 @@ pub fn claim_for_addr(
         funds: vec![],
     });
     messages.push(set_resolver_msg);
-    Ok(Response::new()
-        .add_messages(messages)
-    )
-
+    Ok(Response::new().add_messages(messages))
 }
 
 pub fn claim(
@@ -117,7 +117,7 @@ pub fn set_name_for_addr(
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
     let node = claim_for_addr(deps, env, info, address.clone(), owner, resolver.clone())?;
-    let resolver_address ;
+    let resolver_address;
 
     if let Some(resolver) = resolver {
         resolver_address = resolver.clone()
@@ -136,8 +136,7 @@ pub fn set_name_for_addr(
     });
     Ok(Response::new()
         .add_messages(vec![set_name_msg])
-        .add_attributes(node.attributes)
-    )
+        .add_attributes(node.attributes))
 }
 
 pub fn set_name(

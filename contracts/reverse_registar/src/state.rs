@@ -11,4 +11,3 @@ pub struct Config {
 }
 
 pub const CONFIG: Item<Config> = Item::new("CONFIG");
-

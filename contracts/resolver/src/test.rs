@@ -5,8 +5,8 @@ mod tests {
     use cosmwasm_std::testing::{mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary, Addr};
     use dotlabs::resolver::{
-        AddressResponse, ConfigResponse, ContentHashResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
-        TextDataResponse,
+        AddressResponse, ConfigResponse, ContentHashResponse, ExecuteMsg, InstantiateMsg,
+        NameResponse, QueryMsg, TextDataResponse,
     };
     use dotlabs::utils::namehash;
 
@@ -39,6 +39,47 @@ mod tests {
                 sender: String::from("anyone"),
                 node: format!("{:?}", namehash("test.ust"))
             }
+        );
+    }
+
+    #[test]
+    fn test_set_name() {
+        let mut deps = mock_dependencies(&[]);
+
+        let msg = InstantiateMsg {
+            interface_id: 1,
+            registry_address: String::from("registry_address"),
+        };
+        let info = mock_info("owner", &coins(0, "uusd"));
+        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+
+        let msg = ExecuteMsg::SetName {
+            name: "test.ust".to_string(),
+            address: String::from("new_address"),
+            coin_type: 1,
+        };
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("owner_address", &coins(0, "token")),
+            msg,
+        )
+        .unwrap();
+
+        let query_msg = QueryMsg::GetName {
+            address: String::from("new_address"),
+            coin_type: 1,
+        };
+
+        let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
+
+        let res: NameResponse = from_binary(&res).unwrap();
+
+        assert_eq!(
+            NameResponse {
+                name: String::from("test.ust")
+            },
+            res
         );
     }
 

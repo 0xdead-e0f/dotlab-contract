@@ -14,6 +14,7 @@ pub struct Config {
     pub referal_percentage: (u32, u32),
     pub enable_registration: bool,
     pub registrar_address: CanonicalAddr,
+    pub reverse_registrar_address: CanonicalAddr,
     pub owner: CanonicalAddr,
 }
 

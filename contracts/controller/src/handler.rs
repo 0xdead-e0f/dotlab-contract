@@ -19,6 +19,7 @@ use dotlabs::registrar::{
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::registry::{ExecuteMsg as RegistryExecuteMsg, RecordResponse};
 use dotlabs::resolver::ExecuteMsg as ResolverExecuteMsg;
+use dotlabs::reverse_registar::ExecuteMsg as ReverseRegistrarExecuteMsg;
 use dotlabs::utils::{get_label_from_name, get_token_id_from_label, keccak256};
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -75,6 +76,7 @@ pub fn set_config(
     tier2_price: u64,
     tier3_price: u64,
     registrar_address: String,
+    reverse_registrar_address: String,
     owner: String,
     enable_registration: bool,
 ) -> Result<Response, ContractError> {
@@ -82,6 +84,7 @@ pub fn set_config(
     let mut config = CONFIG.load(deps.storage)?;
 
     let registrar_address = deps.api.addr_canonicalize(registrar_address.as_str())?;
+    let reverse_registrar_address = deps.api.addr_canonicalize(reverse_registrar_address.as_str())?;
     let owner = deps.api.addr_canonicalize(owner.as_str())?;
 
     config.max_commitment_age = max_commitment_age;
@@ -91,6 +94,7 @@ pub fn set_config(
     config.tier2_price = tier2_price;
     config.tier3_price = tier3_price;
     config.registrar_address = registrar_address.clone();
+    config.reverse_registrar_address = reverse_registrar_address.clone();
     config.owner = owner.clone();
     config.enable_registration = enable_registration;
 
@@ -304,7 +308,7 @@ fn _register(
             extension: Extension {
                 name: name.clone(),
                 description: description.unwrap_or(String::from("")),
-            }
+            },
         })?,
         funds: vec![],
     });
@@ -330,9 +334,9 @@ fn _register(
     messages.push(registry_set_resolver_msg);
 
     // Set address at resolver
-    if let Some(address) = address {
+    if let Some(address) = address.clone() {
         let set_address_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: resolver.unwrap_or(registry_address),
+            contract_addr: resolver.clone().unwrap_or(registry_address),
             msg: to_binary(&ResolverExecuteMsg::SetSeiAddress {
                 node: nodehash,
                 address: address,
@@ -357,12 +361,16 @@ fn _register(
     let transfer_nft_registrar_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: registrar_address,
         msg: to_binary(&RegistrarExecuteMsg::<Extension>::TransferNft {
-            recipient: owner,
+            recipient: owner.clone(),
             token_id: token_id,
         })?,
         funds: vec![],
     });
     messages.push(transfer_nft_registrar_msg);
+
+    if let Some(addr) = address {
+        set_reverse_record(deps, name, addr, resolver, owner.to_string())?;
+    }
 
     Ok(messages)
 }
@@ -981,4 +989,24 @@ pub fn add_whitelist_by_owner(
         .add_attribute("method", "add_white_list")
         .add_attribute("ensname", ensname)
         .add_attribute("owner", get_record_by_node_response.owner))
+}
+
+fn set_reverse_record(deps: DepsMut, name: String, address: String, resolver: Option<String>, owner: String)
+    -> Result<Response, ContractError>{
+    let config = CONFIG.load(deps.storage)?;
+    let reverse_registrar_address = deps
+        .api.addr_humanize(&config.reverse_registrar_address)?
+        .to_string();
+    
+    let _set_reverse_record_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute { 
+        contract_addr: reverse_registrar_address, 
+        msg: to_binary(&ReverseRegistrarExecuteMsg::SetNameForAddr{
+            address,
+            owner,
+            resolver,
+            name: name + &".sei".to_string(),
+    })?,
+        funds: vec![], 
+    });
+    Ok(Response::default())
 }

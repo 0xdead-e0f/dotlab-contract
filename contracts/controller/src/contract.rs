@@ -21,7 +21,9 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let registrar_address = deps.api.addr_canonicalize(msg.registrar_address.as_str())?;
+    let reverse_registrar_address = deps.api.addr_canonicalize(msg.reverse_registrar_address.as_str())?;
     let owner = deps.api.addr_canonicalize(info.sender.as_str())?;
+    
     CONFIG.save(
         deps.storage,
         &Config {
@@ -35,6 +37,7 @@ pub fn instantiate(
             referal_percentage: msg.referal_percentage,
             enable_registration: msg.enable_registration,
             registrar_address,
+            reverse_registrar_address,
             owner,
         },
     )?;
@@ -59,9 +62,18 @@ pub fn execute(
             secret,
             resolver,
             address,
-            description
+            description,
         } => register(
-            deps, env, info, name, owner, duration, secret, resolver, address,description
+            deps,
+            env,
+            info,
+            name,
+            owner,
+            duration,
+            secret,
+            resolver,
+            address,
+            description,
         ),
         ExecuteMsg::ReferalRegister {
             name,
@@ -71,9 +83,19 @@ pub fn execute(
             resolver,
             address,
             referer,
-            description
+            description,
         } => referal_register(
-            deps, env, info, name, owner, duration, secret, resolver, address, referer,description
+            deps,
+            env,
+            info,
+            name,
+            owner,
+            duration,
+            secret,
+            resolver,
+            address,
+            referer,
+            description,
         ),
         ExecuteMsg::Renew { name, duration } => renew(deps, env, info, name, duration),
 
@@ -86,6 +108,7 @@ pub fn execute(
             tier2_price,
             tier3_price,
             registrar_address,
+            reverse_registrar_address,
             owner,
             enable_registration,
         } => set_config(
@@ -99,6 +122,7 @@ pub fn execute(
             tier2_price,
             tier3_price,
             registrar_address,
+            reverse_registrar_address,
             owner,
             enable_registration,
         ),
@@ -109,8 +133,18 @@ pub fn execute(
             duration,
             resolver,
             address,
-            description
-        } => owner_register(deps, env, info, name, owner, duration, resolver, address, description),
+            description,
+        } => owner_register(
+            deps,
+            env,
+            info,
+            name,
+            owner,
+            duration,
+            resolver,
+            address,
+            description,
+        ),
         ExecuteMsg::OwnerRenew { name, duration } => owner_renew(deps, env, info, name, duration),
         ExecuteMsg::SetEnableRegistration {
             enable_registration,

@@ -6,13 +6,12 @@ use crate::state::{ADDRESSES, CONFIG};
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryRequest, Response, StdResult, WasmQuery,
 };
+use dotlabs::OUR_COIN_TYPE;
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
 use dotlabs::utils::namehash;
-
-const OUR_COIN_TYPE: u64 = 0x80001234;
 
 fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;

@@ -22,6 +22,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 0,
             min_registration_duration: 0,
             max_commitment_age: 0,
@@ -42,6 +43,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 0,
             min_registration_duration: 0,
             max_commitment_age: 0,
@@ -70,6 +72,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 0,
             min_registration_duration: 0,
             max_commitment_age: 0,
@@ -101,6 +104,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -131,6 +135,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -177,6 +182,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -217,6 +223,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -259,6 +266,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -312,6 +320,7 @@ mod tests {
         let mut deps = mock_dependencies(&[]);
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             min_commitment_age: 10,
             min_registration_duration: 10,
             max_commitment_age: 100,
@@ -339,8 +348,10 @@ mod tests {
     fn test_register() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -411,7 +422,10 @@ mod tests {
                 owner: mock_env().contract.address.to_string(),
                 duration: duration.clone(),
                 name: name.clone(),
-                extension: Extension { name: name, description: String::from("") }
+                extension: Extension {
+                    name: name,
+                    description: String::from(""),
+                },
             })
             .unwrap(),
             funds: vec![],
@@ -527,8 +541,10 @@ mod tests {
     fn test_owner_register() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -565,7 +581,10 @@ mod tests {
                 owner: mock_env().contract.address.to_string(),
                 duration: duration.clone(),
                 name: name.clone(),
-                extension: Extension { name: name, description: String::from("") }
+                extension: Extension {
+                    name: name,
+                    description: String::from(""),
+                },
             })
             .unwrap(),
             funds: vec![],
@@ -648,8 +667,10 @@ mod tests {
     fn test_disable_register() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -758,8 +779,10 @@ mod tests {
     fn test_register_with_insufficient_fund() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -839,8 +862,10 @@ mod tests {
     fn test_register_without_commitment() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -911,8 +936,10 @@ mod tests {
     fn test_renew() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1004,8 +1031,10 @@ mod tests {
     fn test_renew_insufficient_fund() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1054,8 +1083,10 @@ mod tests {
     fn test_withdraw() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1091,8 +1122,10 @@ mod tests {
     fn test_withdraw_not_owner() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1123,8 +1156,10 @@ mod tests {
     fn test_set_config() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1147,6 +1182,7 @@ mod tests {
             tier3_price: 4_000_000u64,
             enable_registration: true,
             registrar_address: String::from("new_registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -1209,8 +1245,11 @@ mod tests {
     fn test_cannot_set_config_if_not_owner() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1233,6 +1272,7 @@ mod tests {
             tier3_price: 4_000_000u64,
             enable_registration: true,
             registrar_address: String::from("new_registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("alice", &coins(0, "uusd"));
@@ -1251,8 +1291,10 @@ mod tests {
     fn test_set_config_transfer_owner() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
+        let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
+            reverse_registrar_address: reverse_registrar_address.clone(),
             min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
             max_commitment_age: 100,
@@ -1265,7 +1307,6 @@ mod tests {
         };
         let info = mock_info("creator", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
-
         let msg = ExecuteMsg::SetConfig {
             max_commitment_age: 120,
             min_commitment_age: 20,
@@ -1275,6 +1316,7 @@ mod tests {
             tier3_price: 4_000_000u64,
             enable_registration: true,
             registrar_address: String::from("new_registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -1298,6 +1340,7 @@ mod tests {
             tier3_price: 4_000_000u64,
             enable_registration: true,
             registrar_address: String::from("new_registrar_address"),
+            reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("creator"),
         };
         let info = mock_info("new_owner", &coins(0, "uusd"));

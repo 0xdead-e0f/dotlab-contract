@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub base_node: String,
     pub base_name: String,
-    pub base_uri: String, 
+    pub base_uri: String,
     pub registry_address: String,
     pub grace_period: Option<u64>,
 

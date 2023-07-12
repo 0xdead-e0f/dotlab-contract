@@ -4,6 +4,7 @@ use cosmwasm_std::{Addr, Binary, Uint128};
 #[cw_serde]
 pub struct InstantiateMsg {
     pub registrar_address: String,
+    pub reverse_registrar_address: String,
     pub max_commitment_age: u64,
     pub min_commitment_age: u64,
     pub min_registration_duration: u64,
@@ -55,6 +56,7 @@ pub enum ExecuteMsg {
         tier2_price: u64,
         tier3_price: u64,
         registrar_address: String,
+        reverse_registrar_address: String,
         owner: String,
         enable_registration: bool,
     },

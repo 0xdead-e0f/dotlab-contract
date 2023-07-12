@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 //#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub interface_id: u64,
-    pub addr_reverse_node: String,
+    pub resolver_address: String,
     pub registry_address: String,
 }
 
@@ -21,32 +20,11 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         name: String,
     },
-    SetNameForAddrWithSignature {
-        address: String,
-        owner: String,
-        resolver: Option<String>,
-        relayer: String,
-        signature_expiry: u128,
-        signature: Vec<u8>,
-        name: String,
-    },
     Claim {
         owner: String,
     },
-    ClaimForAddrWithSignature {
-        address: String,
-        owner: String,
-        resolver: String,
-        relayer: String,
-        signature_expiry: u128,
-        signature: Vec<u8>,
-    },
     ClaimForAddr {
         address: String,
-        owner: String,
-        resolver: String,
-    },
-    ClaimWithResolver {
         owner: String,
         resolver: String,
     },
@@ -54,7 +32,7 @@ pub enum ExecuteMsg {
         name: String,
     },
     SetConfig {
-        interface_id: u64,
+        resolver_address: String,
         registry_address: String,
         owner: String,
     },
@@ -64,8 +42,9 @@ pub enum ExecuteMsg {
 // #[serde(rename_all = "snake_case")]
 #[cw_serde]
 pub enum QueryMsg {
-    GetNode { address: String },
+    // GetNode { address: String },
     GetConfig {},
+    GetReverseRecord { node: Vec<u8> },
 }
 
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -77,8 +56,8 @@ pub struct NameResponse {
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
 pub struct ConfigResponse {
-    pub interface_id: u64,
     pub registry_address: Addr,
+    pub resolver_address:Addr,
     pub owner: Addr,
 }
 
