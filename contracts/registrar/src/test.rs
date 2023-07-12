@@ -2,6 +2,7 @@
 use crate::entry;
 use crate::error::ContractError;
 use crate::state::{Cw721Contract, CONFIG};
+use crate::utils::decode_node_string_to_bytes;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
     coins, from_binary, to_binary, Addr, CosmosMsg, DepsMut, Empty, Response, WasmMsg,
@@ -16,7 +17,7 @@ use dotlabs::registrar::{
     ConfigResponse, ExecuteMsg, Extension, InstantiateMsg, IsAvailableResponse, MintMsg, QueryMsg,
 };
 use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
-use dotlabs::utils::generate_image;
+use dotlabs::utils::{generate_image, namehash};
 
 const CONTRACT_NAME: &str = "Magic Power";
 const SYMBOL: &str = "MGK";
@@ -29,7 +30,6 @@ fn setup_contract(deps: DepsMut<'_>) -> Cw721Contract<'static, Extension, Empty,
         name: CONTRACT_NAME.to_string(),
         base_name: BASE_NAME.to_string(),
         symbol: SYMBOL.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         registry_address: String::from("registry_address"),
         grace_period: None,
         base_uri: String::from("https://dotman.lab/tokens/"),
@@ -48,7 +48,6 @@ fn proper_instantiation() {
     let msg = InstantiateMsg {
         name: CONTRACT_NAME.to_string(),
         symbol: SYMBOL.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         base_name: BASE_NAME.to_string(),
         registry_address: String::from("hellooo"),
         grace_period: None,
@@ -518,7 +517,6 @@ fn test_is_available() {
         name: CONTRACT_NAME.to_string(),
         symbol: SYMBOL.to_string(),
         base_name: BASE_NAME.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         registry_address: String::from("hellooo"),
         grace_period: None,
         base_uri: "https://dotman.lab/tokens/".to_string(),
@@ -543,7 +541,6 @@ fn test_register() {
     let msg = InstantiateMsg {
         name: CONTRACT_NAME.to_string(),
         symbol: SYMBOL.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,
@@ -641,7 +638,6 @@ fn test_reclaim() {
     let msg = InstantiateMsg {
         name: CONTRACT_NAME.to_string(),
         symbol: SYMBOL.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,
@@ -780,7 +776,6 @@ fn test_set_config() {
     let msg = InstantiateMsg {
         name: CONTRACT_NAME.to_string(),
         symbol: SYMBOL.to_string(),
-        base_node: UST_BASE_NODE.to_string(),
         base_name: BASE_NAME.to_string(),
         registry_address: registry_address.clone(),
         grace_period: None,

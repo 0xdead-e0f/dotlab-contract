@@ -12,6 +12,7 @@ pub struct InstantiateMsg {
     pub whitelist_price: u64,
     pub referal_percentage: (u32, u32),
     pub enable_registration: bool,
+    pub description: String,
 }
 
 #[cw_serde]
@@ -23,7 +24,6 @@ pub enum ExecuteMsg {
         secret: String,
         resolver: Option<String>,
         address: Option<String>,
-        description: Option<String>,
         reverse_record: bool,
     },
     ReferalRegister {
@@ -34,7 +34,6 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         address: Option<String>,
         referer: Option<String>,
-        description: Option<String>,
         reverse_record: bool,
     },
     OwnerRegister {
@@ -43,7 +42,6 @@ pub enum ExecuteMsg {
         duration: u64,
         resolver: Option<String>,
         address: Option<String>,
-        description: Option<String>,
         reverse_record: bool,
     },
     SetConfig {
@@ -55,6 +53,7 @@ pub enum ExecuteMsg {
         reverse_registrar_address: String,
         owner: String,
         enable_registration: bool,
+        description: String,
     },
     Withdraw {},
     Renew {

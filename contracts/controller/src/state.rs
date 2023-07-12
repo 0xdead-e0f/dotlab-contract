@@ -14,8 +14,9 @@ pub struct Config {
     pub registrar_address: CanonicalAddr,
     pub reverse_registrar_address: CanonicalAddr,
     pub owner: CanonicalAddr,
+    pub description: String,
 }
 
-pub const REGISTER_FEE_DENOM: &str = "uusd";
+pub const REGISTER_FEE_DENOM: &str = "usei";
 pub const CONFIG: Item<Config> = Item::new("CONFIG");
 pub const WHITELIST: Map<String, (Vec<u8>, u32)> = Map::new("WHITELIST");

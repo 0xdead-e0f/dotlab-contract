@@ -1,7 +1,10 @@
 use crate::error::ContractError;
 use crate::state::{Record, CONFIG, OPERATORS, RECORDS};
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use dotlabs::registry::{ConfigResponse, OperatorResponse, RecordResponse};
+use dotlabs::registry::{
+    ConfigResponse, GetRecordOwnerResponse, GetRecordResolverResponse, GetRecordTtlResponse,
+    OperatorResponse, RecordResponse,
+};
 use dotlabs::utils::keccak256;
 use dotlabs::utils::namehash;
 
@@ -45,6 +48,48 @@ fn only_authorized(
     });
 }
 
+pub fn set_subnode_record(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    node: Vec<u8>,
+    label: Vec<u8>,
+    owner: String,
+    resolver: Option<String>,
+    ttl: u64,
+) -> Result<Response, ContractError> {
+    only_authorized(&deps, &info, &node)?;
+    let subnode = keccak256(&[node, label].concat());
+
+    let config = CONFIG.load(deps.storage)?;
+    let resolver = deps.api.addr_canonicalize(
+        resolver
+            .unwrap_or(config.default_resolver.to_string())
+            .as_str(),
+    )?;
+
+    let record_option = RECORDS.may_load(deps.storage, subnode.clone())?;
+    let canonical_owner = deps.api.addr_canonicalize(owner.as_str())?;
+    if let Some(mut record) = record_option {
+        record.owner = canonical_owner;
+        record.ttl = ttl;
+        record.resolver = resolver;
+        RECORDS.save(deps.storage, subnode.clone(), &record)?;
+        return Ok(Response::default());
+    }
+
+    RECORDS.save(
+        deps.storage,
+        subnode,
+        &Record {
+            owner: canonical_owner,
+            resolver,
+            ttl,
+        },
+    )?;
+
+    Ok(Response::default())
+}
 pub fn set_subnode_owner(
     deps: DepsMut,
     env: Env,
@@ -55,8 +100,8 @@ pub fn set_subnode_owner(
 ) -> Result<Response, ContractError> {
     only_authorized(&deps, &info, &node)?;
     let subnode = keccak256(&[node, label].concat());
-    _set_owner(deps, env, subnode, owner)?;
-    Ok(Response::new())
+    _set_owner(deps, env, subnode.clone(), owner)?;
+    Ok(Response::new().add_attribute("subnode", hex::encode(subnode)))
 }
 
 fn _set_owner(
@@ -189,6 +234,40 @@ pub fn query_record_by_node(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<R
         resolver,
         ttl,
     })
+}
+
+pub fn query_record_owner_by_node(
+    deps: Deps,
+    _env: Env,
+    node: Vec<u8>,
+) -> StdResult<GetRecordOwnerResponse> {
+    let record = RECORDS.load(deps.storage, node)?;
+    let owner = deps.api.addr_humanize(&record.owner)?;
+    Ok(GetRecordOwnerResponse {
+        owner: owner.to_string(),
+    })
+}
+
+pub fn query_record_resolver_by_node(
+    deps: Deps,
+    _env: Env,
+    node: Vec<u8>,
+) -> StdResult<GetRecordResolverResponse> {
+    let record = RECORDS.load(deps.storage, node)?;
+    let resolver = deps.api.addr_humanize(&record.resolver)?;
+    Ok(GetRecordResolverResponse {
+        resolver: resolver.to_string(),
+    })
+}
+
+pub fn query_record_ttl_by_node(
+    deps: Deps,
+    _env: Env,
+    node: Vec<u8>,
+) -> StdResult<GetRecordTtlResponse> {
+    let record = RECORDS.load(deps.storage, node)?;
+    let ttl = record.ttl;
+    Ok(GetRecordTtlResponse { ttl })
 }
 
 pub fn query_record(deps: Deps, _env: Env, name: String) -> StdResult<RecordResponse> {

@@ -14,4 +14,7 @@ pub enum ContractError {
 
     #[error("NotNodeOwner: Sender {sender} is not node owner of {node}.")]
     NotNodeOwner { sender: String, node: String },
+
+    #[error("Hex error")]
+    FromHexError {},
 }

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
 pub struct InstantiateMsg {
-    pub base_node: String,
+    // pub base_node: String,
     pub base_name: String,
     pub base_uri: String,
     pub registry_address: String,

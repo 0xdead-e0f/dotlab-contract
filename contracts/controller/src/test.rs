@@ -28,8 +28,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_eq!(0, res.messages.len());
     }
@@ -47,8 +48,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -74,8 +76,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -106,8 +109,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -115,7 +119,7 @@ mod tests {
         let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -128,7 +132,7 @@ mod tests {
         )
         .unwrap();
         let rent_price_response: RentPriceResponse = from_binary(&res).unwrap();
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Register {
             name: name.clone(),
             owner: owner.clone(),
@@ -136,7 +140,6 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
             reverse_record: false,
         };
         let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -221,7 +224,7 @@ mod tests {
         let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -234,7 +237,7 @@ mod tests {
         )
         .unwrap();
         let rent_price_response: RentPriceResponse = from_binary(&res).unwrap();
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Register {
             name: name.clone(),
             owner: owner.clone(),
@@ -242,7 +245,6 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
             reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
@@ -264,8 +266,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let name = String::from("alice");
@@ -279,7 +282,6 @@ mod tests {
             duration: duration.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
             reverse_record: false,
         };
         let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -369,7 +371,6 @@ mod tests {
             duration: duration.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
             reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
@@ -391,8 +392,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: false,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -400,7 +402,7 @@ mod tests {
         let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -413,7 +415,7 @@ mod tests {
         )
         .unwrap();
         let rent_price_response: RentPriceResponse = from_binary(&res).unwrap();
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Register {
             name: name.clone(),
             owner: owner.clone(),
@@ -421,7 +423,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
+
             reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
@@ -432,12 +434,12 @@ mod tests {
         execute(
             deps.as_mut(),
             mock_env(),
-            mock_info("creator", &coins(0, "uusd")),
+            mock_info("creator", &coins(0, "usei")),
             msg.clone(),
         )
         .unwrap();
 
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Register {
             name: name.clone(),
             owner: owner.clone(),
@@ -445,7 +447,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
+
             reverse_record: false,
         };
         assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
@@ -467,8 +469,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -476,7 +479,7 @@ mod tests {
         let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -493,7 +496,7 @@ mod tests {
 
         let info = mock_info(
             "alice",
-            &coins(rent_price_response.price.u128() / 2, "uusd"),
+            &coins(rent_price_response.price.u128() / 2, "usei"),
         );
         let msg = ExecuteMsg::Register {
             name: name.clone(),
@@ -502,7 +505,7 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
+
             reverse_record: false,
         };
 
@@ -532,8 +535,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -541,7 +545,7 @@ mod tests {
         let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -555,7 +559,7 @@ mod tests {
         .unwrap();
         let rent_price_response: RentPriceResponse = from_binary(&res).unwrap();
 
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Register {
             name: name.clone(),
             owner: owner.clone(),
@@ -563,13 +567,13 @@ mod tests {
             secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
-            description: None,
+
             reverse_record: false,
         };
 
         execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
+        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "usei"));
         let msg = ExecuteMsg::Renew {
             name: name.clone(),
             duration: duration.clone(),
@@ -609,8 +613,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let name = String::from("alice");
@@ -628,7 +633,7 @@ mod tests {
 
         // Sent half of required rent
         let half = rent_price_response.price.u128() / 2;
-        let info = mock_info("alice", &coins(half, "uusd"));
+        let info = mock_info("alice", &coins(half, "usei"));
         let msg = ExecuteMsg::Renew {
             name: name.clone(),
             duration: duration.clone(),
@@ -660,18 +665,19 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         let msg = ExecuteMsg::Withdraw {};
 
         // Zero balance
         let bank_send_message: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
             to_address: "creator".to_string(),
             amount: vec![Coin {
-                denom: "uusd".to_string(),
+                denom: "usei".to_string(),
                 amount: Uint128::from(0 as u32),
             }],
         });
@@ -698,11 +704,12 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
         let msg = ExecuteMsg::Withdraw {};
 
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
@@ -731,8 +738,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let msg = ExecuteMsg::SetConfig {
@@ -741,6 +749,7 @@ mod tests {
             tier2_price: 5_000_000u64,
             tier3_price: 4_000_000u64,
             enable_registration: true,
+            description: "".to_string(),
             registrar_address: String::from("new_registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
@@ -808,8 +817,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let msg = ExecuteMsg::SetConfig {
@@ -818,11 +828,12 @@ mod tests {
             tier2_price: 5_000_000u64,
             tier3_price: 4_000_000u64,
             enable_registration: true,
+            description: "".to_string(),
             registrar_address: String::from("new_registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
-        let info = mock_info("alice", &coins(0, "uusd"));
+        let info = mock_info("alice", &coins(0, "usei"));
         let err = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap_err();
 
         assert_eq!(
@@ -850,8 +861,9 @@ mod tests {
             whitelist_price: 640_000_000u64,
             referal_percentage: (20, 40),
             enable_registration: true,
+            description: "".to_string(),
         };
-        let info = mock_info("creator", &coins(0, "uusd"));
+        let info = mock_info("creator", &coins(0, "usei"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         let msg = ExecuteMsg::SetConfig {
             min_registration_duration: 24 * 3600 * 365 * 2,
@@ -859,6 +871,7 @@ mod tests {
             tier2_price: 5_000_000u64,
             tier3_price: 4_000_000u64,
             enable_registration: true,
+            description: "".to_string(),
             registrar_address: String::from("new_registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
@@ -881,11 +894,12 @@ mod tests {
             tier2_price: 5_000_000u64,
             tier3_price: 4_000_000u64,
             enable_registration: true,
+            description: "".to_string(),
             registrar_address: String::from("new_registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
             owner: String::from("creator"),
         };
-        let info = mock_info("new_owner", &coins(0, "uusd"));
+        let info = mock_info("new_owner", &coins(0, "usei"));
         execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let msg = QueryMsg::Owner {};

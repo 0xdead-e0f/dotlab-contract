@@ -31,11 +31,12 @@ where
         let sender = info.sender;
         let registry_address = deps.api.addr_canonicalize(msg.registry_address.as_str())?;
         let owner = deps.api.addr_canonicalize(sender.as_str())?;
-        let decoded = decode_node_string_to_bytes(msg.base_node);
-        if let Err(_err) = decoded {
-            return Err(ContractError::BytesFormatError {});
-        }
-        let base_node = decoded.unwrap();
+        // let decoded = decode_node_string_to_bytes(msg.base_node);
+        // if let Err(_err) = decoded {
+        //     return Err(ContractError::BytesFormatError {});
+        // }
+
+        let base_node = namehash(&msg.base_name);
         let base_name = msg.base_name;
 
         if namehash(&base_name) != base_node {

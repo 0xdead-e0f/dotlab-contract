@@ -11,8 +11,8 @@ use cosmwasm_std::{
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
 use dotlabs::registrar::{
-    ExecuteMsg as RegistrarExecuteMsg, Extension, GetBaseNodeResponse, GetRegistryResponse,
-    IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
+    ConfigResponse, ExecuteMsg as RegistrarExecuteMsg, Extension, GetBaseNodeResponse,
+    GetRegistryResponse, IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
 };
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::registry::{ExecuteMsg as RegistryExecuteMsg, RecordResponse};
@@ -75,6 +75,7 @@ pub fn set_config(
     reverse_registrar_address: String,
     owner: String,
     enable_registration: bool,
+    description: String,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -93,6 +94,7 @@ pub fn set_config(
     config.reverse_registrar_address = reverse_registrar_address.clone();
     config.owner = owner.clone();
     config.enable_registration = enable_registration;
+    config.description = description;
 
     CONFIG.save(deps.storage, &config)?;
     Ok(Response::new()
@@ -278,7 +280,6 @@ fn _register(
     duration: u64,
     resolver: Option<String>,
     address: Option<String>,
-    description: Option<String>,
     reverse_record: bool,
 ) -> Result<Vec<CosmosMsg>, ContractError> {
     let mut messages: Vec<CosmosMsg> = vec![];
@@ -302,7 +303,7 @@ fn _register(
             duration,
             extension: Extension {
                 name: name.clone(),
-                description: description.unwrap_or(String::from("")),
+                description: config.description,
             },
         })?,
         funds: vec![],
@@ -417,7 +418,6 @@ pub fn register(
     secret: String,
     resolver: Option<String>,
     address: Option<String>,
-    description: Option<String>,
     reverse_record: bool,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
@@ -439,7 +439,6 @@ pub fn register(
         duration,
         resolver,
         address,
-        description,
         reverse_record,
     )?;
 
@@ -467,7 +466,6 @@ pub fn referal_register(
     resolver: Option<String>,
     address: Option<String>,
     referer_ensname: Option<String>,
-    description: Option<String>,
     reverse_record: bool,
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
@@ -489,7 +487,6 @@ pub fn referal_register(
         duration,
         resolver,
         address,
-        description,
         reverse_record,
     )?;
 
@@ -602,7 +599,6 @@ pub fn owner_register(
     duration: u64,
     resolver: Option<String>,
     address: Option<String>,
-    description: Option<String>,
     reverse_record: bool,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
@@ -619,7 +615,6 @@ pub fn owner_register(
         duration,
         resolver,
         address,
-        description,
         reverse_record,
     )?;
 
@@ -980,6 +975,19 @@ fn set_reverse_record(
     owner: String,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
+    let registrar_address = deps
+        .api
+        .addr_humanize(&config.registrar_address)?
+        .to_string();
+
+    let get_registrar_config_response: ConfigResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: registrar_address.clone(),
+            msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetConfig {})?,
+        }))?;
+
+    let base_name = get_registrar_config_response.base_name;
+
     let reverse_registrar_address = deps
         .api
         .addr_humanize(&config.reverse_registrar_address)?
@@ -991,7 +999,8 @@ fn set_reverse_record(
             address,
             owner,
             resolver,
-            name: name + &".sei".to_string(),
+            name: name + &".".to_string() + base_name.as_str(),
+            // name: name + &".sei".to_string(),
         })?,
         funds: vec![],
     });

@@ -38,6 +38,7 @@ pub fn instantiate(
             registrar_address,
             reverse_registrar_address,
             owner,
+            description: msg.description,
         },
     )?;
     Ok(Response::new()
@@ -60,7 +61,6 @@ pub fn execute(
             secret,
             resolver,
             address,
-            description,
             reverse_record,
         } => register(
             deps,
@@ -72,7 +72,6 @@ pub fn execute(
             secret,
             resolver,
             address,
-            description,
             reverse_record,
         ),
         ExecuteMsg::ReferalRegister {
@@ -83,7 +82,6 @@ pub fn execute(
             resolver,
             address,
             referer,
-            description,
             reverse_record,
         } => referal_register(
             deps,
@@ -96,7 +94,6 @@ pub fn execute(
             resolver,
             address,
             referer,
-            description,
             reverse_record,
         ),
         ExecuteMsg::Renew { name, duration } => renew(deps, env, info, name, duration),
@@ -111,6 +108,7 @@ pub fn execute(
             reverse_registrar_address,
             owner,
             enable_registration,
+            description,
         } => set_config(
             deps,
             env,
@@ -123,6 +121,7 @@ pub fn execute(
             reverse_registrar_address,
             owner,
             enable_registration,
+            description,
         ),
         ExecuteMsg::Withdraw {} => withdraw(deps, env, info),
         ExecuteMsg::OwnerRegister {
@@ -131,7 +130,6 @@ pub fn execute(
             duration,
             resolver,
             address,
-            description,
             reverse_record,
         } => owner_register(
             deps,
@@ -142,7 +140,6 @@ pub fn execute(
             duration,
             resolver,
             address,
-            description,
             reverse_record,
         ),
         ExecuteMsg::OwnerRenew { name, duration } => owner_renew(deps, env, info, name, duration),

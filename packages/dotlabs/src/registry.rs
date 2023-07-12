@@ -14,6 +14,13 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         ttl: u64,
     },
+    SetSubnodeRecord {
+        node: Vec<u8>,
+        label: Vec<u8>,
+        owner: String,
+        resolver: Option<String>,
+        ttl: u64,
+    },
     SetSubnodeOwner {
         node: Vec<u8>,
         label: Vec<u8>,
@@ -50,6 +57,9 @@ pub enum QueryMsg {
     GetIsNodeOwner { node: Vec<u8>, address: String },
     GetIsApprovedForAll { owner: String, operator: String },
     GetConfig {},
+    GetRecordOwner { node: Vec<u8> },
+    GetRecordResolver { node: Vec<u8> },
+    GetRecordTtl { node: Vec<u8> },
 }
 
 // We define a custom struct for each query response
@@ -57,6 +67,21 @@ pub enum QueryMsg {
 pub struct RecordResponse {
     pub owner: Addr,
     pub resolver: Addr,
+    pub ttl: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct GetRecordOwnerResponse {
+    pub owner: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct GetRecordResolverResponse {
+    pub resolver: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct GetRecordTtlResponse {
     pub ttl: u64,
 }
 

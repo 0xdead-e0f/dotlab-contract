@@ -1,8 +1,9 @@
 use crate::error::ContractError;
 use crate::handler::{
     get_config, is_node_owner, query_is_approved_for_all, query_record, query_record_by_node,
+    query_record_owner_by_node, query_record_resolver_by_node, query_record_ttl_by_node,
     set_approval_for_all, set_config, set_owner, set_record, set_resolver, set_subnode_owner,
-    set_ttl,
+    set_subnode_record, set_ttl,
 };
 use crate::state::{Config, Record, CONFIG, RECORDS};
 #[cfg(not(feature = "library"))]
@@ -53,6 +54,13 @@ pub fn execute(
             resolver,
             ttl,
         } => set_record(deps, env, info, node, owner, resolver, ttl),
+        ExecuteMsg::SetSubnodeRecord {
+            node,
+            label,
+            owner,
+            resolver,
+            ttl,
+        } => set_subnode_record(deps, env, info, node, label, owner, resolver, ttl),
         ExecuteMsg::SetSubnodeOwner { node, label, owner } => {
             set_subnode_owner(deps, env, info, node, label, owner)
         }
@@ -83,6 +91,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_binary(&query_is_approved_for_all(deps, env, owner, operator)?)
         }
         QueryMsg::GetConfig {} => to_binary(&get_config(deps)?),
+        QueryMsg::GetRecordOwner { node } => {
+            to_binary(&query_record_owner_by_node(deps, env, node)?)
+        }
+        QueryMsg::GetRecordResolver { node } => {
+            to_binary(&query_record_resolver_by_node(deps, env, node)?)
+        }
+        QueryMsg::GetRecordTtl { node } => to_binary(&query_record_ttl_by_node(deps, env, node)?),
     }
 }
 

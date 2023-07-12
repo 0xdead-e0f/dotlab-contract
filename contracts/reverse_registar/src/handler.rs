@@ -65,7 +65,7 @@ pub fn claim_for_addr(
     let registry_address = config.registry_address.clone().to_string();
 
     let labelhash = get_label_from_name(&address);
-    // let reverse_node = namehash((address + &".addr.reverse".to_string()).as_str());
+    let reverse_node = namehash((address + &".addr.reverse".to_string()).as_str());
     let set_subnode_owner_registry_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: registry_address.to_string(),
         msg: to_binary(&RegistryExecuteMsg::SetSubnodeOwner {
@@ -79,8 +79,8 @@ pub fn claim_for_addr(
     let set_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: registry_address.to_string(),
         msg: to_binary(&RegistryExecuteMsg::SetResolver {
-            node: get_label_from_name(&".addr.reverse".to_string()),
-            resolver: resolver,
+            node: reverse_node,
+            resolver,
         })?,
         funds: vec![],
     });
