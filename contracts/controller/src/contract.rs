@@ -1,10 +1,9 @@
 use crate::error::ContractError;
 use crate::handler::{
-    add_whitelist, add_whitelist_by_owner, commit, get_commitment, get_commitment_timestamp,
-    get_is_valid_name, get_max_commitment_age, get_min_commitment_age,
-    get_min_registration_duration, get_node_info_from_name, get_nodehash_from_name, get_owner,
-    get_price, get_registrar, get_rent_price, get_token_id_from_name, owner_register, owner_renew,
-    referal_register, register, renew, set_config, set_enable_registration, set_referal_percentage,
+    add_whitelist, add_whitelist_by_owner, get_is_valid_name, get_min_registration_duration,
+    get_node_info_from_name, get_nodehash_from_name, get_owner, get_price, get_registrar,
+    get_rent_price, get_token_id_from_name, owner_register, owner_renew, referal_register,
+    register, renew, set_config, set_enable_registration, set_referal_percentage,
     set_whitelist_price, withdraw,
 };
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
@@ -29,8 +28,6 @@ pub fn instantiate(
     CONFIG.save(
         deps.storage,
         &Config {
-            max_commitment_age: msg.max_commitment_age,
-            min_commitment_age: msg.min_commitment_age,
             min_registration_duration: msg.min_registration_duration,
             tier1_price: msg.tier1_price,
             tier2_price: msg.tier2_price,
@@ -56,7 +53,6 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Commit { commitment } => commit(deps, env, info, commitment),
         ExecuteMsg::Register {
             name,
             owner,
@@ -107,8 +103,6 @@ pub fn execute(
 
         // Only owner
         ExecuteMsg::SetConfig {
-            max_commitment_age,
-            min_commitment_age,
             min_registration_duration,
             tier1_price,
             tier2_price,
@@ -121,8 +115,6 @@ pub fn execute(
             deps,
             env,
             info,
-            max_commitment_age,
-            min_commitment_age,
             min_registration_duration,
             tier1_price,
             tier2_price,
@@ -173,22 +165,7 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetCommitment {
-            name,
-            owner,
-            secret,
-            resolver,
-            address,
-        } => to_binary(&get_commitment(
-            &name, &owner, &secret, &resolver, &address,
-        )?),
-        QueryMsg::CommitmentTimestamp { commitment } => {
-            to_binary(&get_commitment_timestamp(deps, commitment)?)
-        }
         QueryMsg::RentPrice { name, duration } => to_binary(&get_rent_price(deps, name, duration)?),
-
-        QueryMsg::MaxCommitmentAge {} => to_binary(&get_max_commitment_age(deps)?),
-        QueryMsg::MinCommitmentAge {} => to_binary(&get_min_commitment_age(deps)?),
         QueryMsg::MinRegistrationDuration {} => to_binary(&get_min_registration_duration(deps)?),
         QueryMsg::GetPrice {} => to_binary(&get_price(deps)?),
         QueryMsg::Registrar {} => to_binary(&get_registrar(deps)?),

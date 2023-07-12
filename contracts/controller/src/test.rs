@@ -1,14 +1,12 @@
 mod tests {
     use crate::contract::{execute, instantiate, query};
     use crate::error::ContractError;
-    use crate::handler::consume_commitment;
     use crate::mock_querier::mock_dependencies;
     use crate::msg::{
-        ExecuteMsg, GetCommitmentResponse, InstantiateMsg, MaxCommitmentAgeResponse,
-        MinCommitmentAgeResponse, MinRegistrationDurationResponse, NodehashResponse, OwnerResponse,
-        PriceResponse, QueryMsg, RegistrarResponse, RentPriceResponse, TokenIdResponse,
+        ExecuteMsg, InstantiateMsg, MinRegistrationDurationResponse, NodehashResponse,
+        OwnerResponse, PriceResponse, QueryMsg, RegistrarResponse, RentPriceResponse,
+        TokenIdResponse,
     };
-    use crate::state::COMMITMENTS;
     use cosmwasm_std::testing::{mock_env, mock_info};
     use cosmwasm_std::{
         coins, from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Timestamp, Uint128, WasmMsg,
@@ -23,9 +21,7 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 0,
             min_registration_duration: 0,
-            max_commitment_age: 0,
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -44,9 +40,7 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 0,
             min_registration_duration: 0,
-            max_commitment_age: 0,
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -73,9 +67,7 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: String::from("registrar_address"),
             reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 0,
             min_registration_duration: 0,
-            max_commitment_age: 0,
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -98,252 +90,6 @@ mod tests {
         )
     }
 
-    // Commit
-    #[test] //Should be able to commit
-    fn test_commit() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let commitment =
-            String::from("9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349");
-
-        let msg = ExecuteMsg::Commit {
-            commitment: commitment.clone(),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        assert_eq!(commitment, res.attributes[1].value)
-    }
-
-    #[test] //Should not be able to recommit if the commitment is not expired yet
-    fn test_too_early_recommit_error() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: String::from(
-                "9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349",
-            ),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        //fast forward 50 seconds
-        let mut env = mock_env();
-        env.block.time = Timestamp::from_nanos(1_571_797_469_879_305_533);
-
-        let msg = ExecuteMsg::Commit {
-            commitment: String::from(
-                "9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349",
-            ),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        let err = execute(deps.as_mut(), env, info, msg).unwrap_err();
-        assert_eq!(
-            err,
-            ContractError::RecommitTooEarly {
-                commit_expired: 1571797519,
-                current: 1571797469
-            }
-        );
-    }
-
-    #[test] //Should be ablt to recommit after the commitment expires
-    fn test_mature_recommit() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let commitment =
-            String::from("9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349");
-        let msg = ExecuteMsg::Commit {
-            commitment: commitment.clone(),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        //fast forward 150 seconds
-        let mut env = mock_env();
-        env.block.time = Timestamp::from_nanos(1_571_797_569_879_305_533);
-
-        let msg = ExecuteMsg::Commit {
-            commitment: commitment.clone(),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        let res = execute(deps.as_mut(), env, info, msg).unwrap();
-
-        assert_eq!(commitment, res.attributes[1].value)
-    }
-
-    // Consume Commit
-    #[test] //Should be able to consume and remove commitment
-    fn test_consume_commitment() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let commitment =
-            String::from("9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349");
-        let msg = ExecuteMsg::Commit {
-            commitment: commitment.clone(),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        // Found the commitment
-        let commit_time = COMMITMENTS
-            .load(deps.as_mut().storage, commitment.clone())
-            .unwrap();
-        assert_eq!(commit_time, 1571797419);
-
-        //fast forward 50 seconds
-        let mut env = mock_env();
-        env.block.time = Timestamp::from_nanos(1_571_797_469_879_305_533);
-        consume_commitment(deps.as_mut(), env, commitment.clone()).unwrap();
-
-        // Should not found the commitment
-        let res = COMMITMENTS.load(deps.as_mut().storage, commitment.clone());
-        assert_eq!(res.is_err(), true);
-    }
-
-    #[test] //Should return error commitment age is out of range
-    fn test_consume_commitment_time_guard() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let commitment =
-            String::from("9232a542ecd323875f2ebac7db9f86ab606badb823af8628b7615ad78227e349");
-        let msg = ExecuteMsg::Commit {
-            commitment: commitment.clone(),
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        // Too early
-        let err = consume_commitment(deps.as_mut(), mock_env(), commitment.clone()).unwrap_err();
-        assert_eq!(
-            err,
-            ContractError::CommitmentIsTooEarlyOrExpired {
-                commit_expired: 1571797419 + 100,
-                commit_matured: 1571797419 + 10,
-                current: 1571797419,
-            }
-        );
-
-        // Too late
-        //fast forward 150 seconds
-        let mut env = mock_env();
-        env.block.time = Timestamp::from_nanos(1_571_797_569_879_305_533);
-
-        let err = consume_commitment(deps.as_mut(), env, commitment.clone()).unwrap_err();
-        assert_eq!(
-            err,
-            ContractError::CommitmentIsTooEarlyOrExpired {
-                commit_expired: 1571797419 + 100,
-                commit_matured: 1571797419 + 10,
-                current: 1571797569,
-            }
-        );
-    }
-
-    #[test] //Should return error when consume nonexist commitment
-    fn test_consume_commitment_no_commitment() {
-        let mut deps = mock_dependencies(&[]);
-        let msg = InstantiateMsg {
-            registrar_address: String::from("registrar_address"),
-            reverse_registrar_address: String::from("reverse_registrar_address"),
-            min_commitment_age: 10,
-            min_registration_duration: 10,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let err =
-            consume_commitment(deps.as_mut(), mock_env(), String::from("nonexist")).unwrap_err();
-        assert_eq!(
-            err,
-            ContractError::ConsumeNonexistCommitment {
-                commitment: String::from("nonexist")
-            }
-        );
-    }
-
     #[test] // Should return correct messages
     fn test_register() {
         let mut deps = mock_dependencies(&[]);
@@ -352,9 +98,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -371,24 +116,6 @@ mod tests {
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
         let info = mock_info("alice", &coins(0, "uusd"));
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -495,24 +222,6 @@ mod tests {
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
         let info = mock_info("alice", &coins(0, "uusd"));
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -547,9 +256,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -675,9 +383,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -694,24 +401,6 @@ mod tests {
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
         let info = mock_info("alice", &coins(0, "uusd"));
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_err(), true);
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -744,28 +433,9 @@ mod tests {
             deps.as_mut(),
             mock_env(),
             mock_info("creator", &coins(0, "uusd")),
-            msg,
+            msg.clone(),
         )
         .unwrap();
-
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
-        assert_eq!(execute(deps.as_mut(), mock_env(), info, msg).is_ok(), true);
 
         let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
         let msg = ExecuteMsg::Register {
@@ -789,9 +459,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -808,24 +477,6 @@ mod tests {
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
         let info = mock_info("alice", &coins(0, "uusd"));
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -865,81 +516,6 @@ mod tests {
         )
     }
 
-    #[test] // Should not be able to register without commitment
-    fn test_register_without_commitment() {
-        let mut deps = mock_dependencies(&[]);
-        let registrar_address = String::from("registrar_address");
-        let reverse_registrar_address = String::from("reverse_registrar_address");
-        let msg = InstantiateMsg {
-            registrar_address: registrar_address.clone(),
-            reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
-            min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
-            tier1_price: 640_000_000u64,
-            tier2_price: 160_000_000u64,
-            tier3_price: 5_000_000u64,
-            whitelist_price: 640_000_000u64,
-            referal_percentage: (20, 40),
-            enable_registration: true,
-        };
-        let info = mock_info("creator", &coins(0, "uusd"));
-        instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        let name = String::from("alice");
-        let owner = String::from("alice");
-        let secret = String::from("tns_secret");
-        let resolver = String::from("public_resolver");
-        let address = String::from("alice_addr");
-
-        let duration: u64 = 24 * 3600 * 365;
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::RentPrice {
-                name: name.clone(),
-                duration: duration.clone(),
-            },
-        )
-        .unwrap();
-        let rent_price_response: RentPriceResponse = from_binary(&res).unwrap();
-
-        let info = mock_info("alice", &coins(rent_price_response.price.u128(), "uusd"));
-        let msg = ExecuteMsg::Register {
-            name: name.clone(),
-            owner: owner.clone(),
-            duration: duration.clone(),
-            secret: secret.clone(),
-            resolver: Some(resolver.clone()),
-            address: Some(address.clone()),
-            description: None,
-            reverse_record: false,
-        };
-
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        // Should error at consume_commitment
-        let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert_eq!(
-            err,
-            ContractError::ConsumeNonexistCommitment {
-                commitment: get_commitment_response.commitment
-            }
-        );
-    }
-
     #[test]
     fn test_renew() {
         let mut deps = mock_dependencies(&[]);
@@ -948,9 +524,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -967,24 +542,6 @@ mod tests {
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
         let info = mock_info("alice", &coins(0, "uusd"));
-        let res = query(
-            deps.as_ref(),
-            mock_env(),
-            QueryMsg::GetCommitment {
-                name: name.clone(),
-                owner: owner.clone(),
-                secret: secret.clone(),
-                resolver: Some(resolver.clone()),
-                address: Some(address.clone()),
-            },
-        )
-        .unwrap();
-        let get_commitment_response: GetCommitmentResponse = from_binary(&res).unwrap();
-
-        let msg = ExecuteMsg::Commit {
-            commitment: get_commitment_response.commitment,
-        };
-        execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -1044,9 +601,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1096,9 +652,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1135,9 +690,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1169,9 +723,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1183,8 +736,6 @@ mod tests {
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let msg = ExecuteMsg::SetConfig {
-            max_commitment_age: 120,
-            min_commitment_age: 20,
             min_registration_duration: 24 * 3600 * 365 * 2,
             tier1_price: 6_000_000u64,
             tier2_price: 5_000_000u64,
@@ -1215,16 +766,6 @@ mod tests {
                 registrar_address: Addr::unchecked(String::from("new_registrar_address")),
             }
         );
-
-        let msg = QueryMsg::MaxCommitmentAge {};
-        let res = query(deps.as_ref(), mock_env(), msg).unwrap();
-        let res: MaxCommitmentAgeResponse = from_binary(&res).unwrap();
-        assert_eq!(res, MaxCommitmentAgeResponse { age: 120 });
-
-        let msg = QueryMsg::MinCommitmentAge {};
-        let res = query(deps.as_ref(), mock_env(), msg).unwrap();
-        let res: MinCommitmentAgeResponse = from_binary(&res).unwrap();
-        assert_eq!(res, MinCommitmentAgeResponse { age: 20 });
 
         let msg = QueryMsg::MinRegistrationDuration {};
         let res = query(deps.as_ref(), mock_env(), msg).unwrap();
@@ -1259,9 +800,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1273,8 +813,6 @@ mod tests {
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
         let msg = ExecuteMsg::SetConfig {
-            max_commitment_age: 120,
-            min_commitment_age: 20,
             min_registration_duration: 24 * 3600 * 365 * 2,
             tier1_price: 6_000_000u64,
             tier2_price: 5_000_000u64,
@@ -1304,9 +842,8 @@ mod tests {
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),
             reverse_registrar_address: reverse_registrar_address.clone(),
-            min_commitment_age: 0, // For by-pass commitment guard
             min_registration_duration: 24 * 3600 * 365,
-            max_commitment_age: 100,
+
             tier1_price: 640_000_000u64,
             tier2_price: 160_000_000u64,
             tier3_price: 5_000_000u64,
@@ -1317,8 +854,6 @@ mod tests {
         let info = mock_info("creator", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
         let msg = ExecuteMsg::SetConfig {
-            max_commitment_age: 120,
-            min_commitment_age: 20,
             min_registration_duration: 24 * 3600 * 365 * 2,
             tier1_price: 6_000_000u64,
             tier2_price: 5_000_000u64,
@@ -1341,8 +876,6 @@ mod tests {
         );
 
         let msg = ExecuteMsg::SetConfig {
-            max_commitment_age: 120,
-            min_commitment_age: 20,
             min_registration_duration: 24 * 3600 * 365 * 2,
             tier1_price: 6_000_000u64,
             tier2_price: 5_000_000u64,

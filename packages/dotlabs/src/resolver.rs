@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub interface_id: u64,
     pub registry_address: String,
-    pub reverse_registrar: String,
+    pub trusted_reverse_registrar: String,
+    pub trusted_controller: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -32,7 +33,8 @@ pub enum ExecuteMsg {
     SetConfig {
         interface_id: u64,
         registry_address: String,
-        reverse_registrar: String,
+        trusted_reverse_registrar: String,
+        trusted_controller: String,
         owner: String,
     },
     SetName {
@@ -86,7 +88,8 @@ pub struct ContentHashResponse {
 pub struct ConfigResponse {
     pub interface_id: u64,
     pub registry_address: Addr,
-    pub reverse_registrar: Addr,
+    pub trusted_reverse_registrar: Addr,
+    pub trusted_controller: Addr,
     pub owner: Addr,
 }
 

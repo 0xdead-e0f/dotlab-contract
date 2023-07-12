@@ -33,7 +33,9 @@ pub fn only_authorized(
 ) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
 
-    if info.sender.to_string() == config.reverse_registrar.to_string() {
+    if info.sender.to_string() == config.trusted_reverse_registrar.to_string()
+        || info.sender.to_string() == config.trusted_controller.to_string()
+    {
         return Ok(true);
     }
 
@@ -177,24 +179,36 @@ pub fn set_config(
     info: MessageInfo,
     interface_id: u64,
     registry_address: String,
-    reverse_registrar: String,
+    trusted_reverse_registrar: String,
+    trusted_controller: String,
     owner: String,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
     let mut config = CONFIG.load(deps.storage)?;
 
     let registry_address = deps.api.addr_canonicalize(registry_address.as_str())?;
+    let trusted_reverse_registrar = deps
+        .api
+        .addr_canonicalize(trusted_reverse_registrar.as_str())?;
+    let trusted_controller = deps.api.addr_canonicalize(trusted_controller.as_str())?;
     let owner = deps.api.addr_canonicalize(owner.as_str())?;
 
     config.interface_id = interface_id;
     config.registry_address = registry_address.clone();
     config.owner = owner.clone();
+    config.trusted_reverse_registrar = trusted_reverse_registrar.clone();
+    config.trusted_controller = trusted_controller.clone();
 
     CONFIG.save(deps.storage, &config)?;
     Ok(Response::new()
         .add_attribute("method", "set_config")
         .add_attribute("interface_id", interface_id.to_string())
         .add_attribute("registry_address", registry_address.clone().to_string())
+        .add_attribute(
+            "trusted_reverse_registrar",
+            trusted_reverse_registrar.clone().to_string(),
+        )
+        .add_attribute("trusted_controller", trusted_controller.clone().to_string())
         .add_attribute("owner", owner.clone().to_string()))
 }
 
@@ -202,11 +216,13 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
     let config = CONFIG.load(deps.storage)?;
     let owner = deps.api.addr_humanize(&config.owner)?;
     let registry_address = deps.api.addr_humanize(&config.registry_address)?;
-    let reverse_registrar = deps.api.addr_humanize(&config.reverse_registrar)?;
+    let trusted_reverse_registrar = deps.api.addr_humanize(&config.trusted_reverse_registrar)?;
+    let trusted_controller = deps.api.addr_humanize(&config.trusted_controller)?;
     Ok(ConfigResponse {
         interface_id: config.interface_id,
         registry_address,
-        reverse_registrar,
+        trusted_reverse_registrar,
+        trusted_controller,
         owner,
     })
 }

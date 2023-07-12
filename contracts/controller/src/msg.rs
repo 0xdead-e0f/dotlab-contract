@@ -5,8 +5,6 @@ use cosmwasm_std::{Addr, Binary, Uint128};
 pub struct InstantiateMsg {
     pub registrar_address: String,
     pub reverse_registrar_address: String,
-    pub max_commitment_age: u64,
-    pub min_commitment_age: u64,
     pub min_registration_duration: u64,
     pub tier1_price: u64,
     pub tier2_price: u64,
@@ -18,9 +16,6 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    Commit {
-        commitment: String,
-    },
     Register {
         name: String,
         owner: String,
@@ -52,8 +47,6 @@ pub enum ExecuteMsg {
         reverse_record: bool,
     },
     SetConfig {
-        max_commitment_age: u64,
-        min_commitment_age: u64,
         min_registration_duration: u64,
         tier1_price: u64,
         tier2_price: u64,
@@ -99,21 +92,7 @@ pub enum QueryMsg {
     #[returns(Binary)]
     Registrar {},
     #[returns(Binary)]
-    CommitmentTimestamp { commitment: String },
-    #[returns(Binary)]
-    GetCommitment {
-        name: String,
-        owner: String,
-        secret: String,
-        resolver: Option<String>,
-        address: Option<String>,
-    },
-    #[returns(Binary)]
     RentPrice { name: String, duration: u64 },
-    #[returns(Binary)]
-    MaxCommitmentAge {},
-    #[returns(Binary)]
-    MinCommitmentAge {},
     #[returns(Binary)]
     MinRegistrationDuration {},
     #[returns(Binary)]
@@ -129,29 +108,10 @@ pub enum QueryMsg {
 }
 
 // We define a custom struct for each query response
-#[cw_serde]
-pub struct GetCommitmentResponse {
-    pub commitment: String,
-}
-
-#[cw_serde]
-pub struct CommitmentTimestampResponse {
-    pub timestamp: u64,
-}
 
 #[cw_serde]
 pub struct RentPriceResponse {
     pub price: Uint128,
-}
-
-#[cw_serde]
-pub struct MaxCommitmentAgeResponse {
-    pub age: u64,
-}
-
-#[cw_serde]
-pub struct MinCommitmentAgeResponse {
-    pub age: u64,
 }
 
 #[cw_serde]

@@ -18,14 +18,20 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let registry_address = deps.api.addr_canonicalize(msg.registry_address.as_str())?;
-    let reverse_registrar = deps.api.addr_canonicalize(msg.reverse_registrar.as_str())?;
+    let trusted_reverse_registrar = deps
+        .api
+        .addr_canonicalize(&msg.trusted_reverse_registrar.as_str())?;
+    let trusted_controller = deps
+        .api
+        .addr_canonicalize(&msg.trusted_controller.as_str())?;
     let sender = deps.api.addr_canonicalize(info.sender.as_str())?;
     CONFIG.save(
         deps.storage,
         &Config {
             interface_id: msg.interface_id,
             registry_address,
-            reverse_registrar,
+            trusted_reverse_registrar,
+            trusted_controller,
             owner: sender.clone(),
         },
     )?;
@@ -53,7 +59,8 @@ pub fn execute(
         ExecuteMsg::SetConfig {
             interface_id,
             registry_address,
-            reverse_registrar,
+            trusted_reverse_registrar,
+            trusted_controller,
             owner,
         } => set_config(
             deps,
@@ -61,7 +68,8 @@ pub fn execute(
             info,
             interface_id,
             registry_address,
-            reverse_registrar,
+            trusted_reverse_registrar,
+            trusted_controller,
             owner,
         ),
     }

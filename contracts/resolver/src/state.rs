@@ -8,7 +8,8 @@ use cw_storage_plus::{Item, Map};
 pub struct Config {
     pub interface_id: u64,
     pub registry_address: CanonicalAddr,
-    pub reverse_registrar: CanonicalAddr,
+    pub trusted_reverse_registrar: CanonicalAddr,
+    pub trusted_controller: CanonicalAddr,
     pub owner: CanonicalAddr,
 }
 

@@ -17,7 +17,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("not_owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -49,7 +50,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -89,7 +91,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -130,7 +133,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -172,7 +176,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -213,7 +218,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -249,7 +255,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -257,7 +264,8 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
@@ -271,7 +279,10 @@ mod tests {
             ConfigResponse {
                 interface_id: 2,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
-                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
+                trusted_reverse_registrar: Addr::unchecked(String::from(
+                    "trusted_reverse_registrar_address"
+                )),
+                trusted_controller: Addr::unchecked(String::from("trusted_controller")),
                 owner: Addr::unchecked(String::from("new_owner"))
             }
         );
@@ -284,7 +295,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -292,7 +304,8 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("not_owner", &coins(0, "uusd"));
@@ -314,7 +327,8 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -322,7 +336,8 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
@@ -336,7 +351,10 @@ mod tests {
             ConfigResponse {
                 interface_id: 2,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
-                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
+                trusted_reverse_registrar: Addr::unchecked(String::from(
+                    "trusted_reverse_registrar_address"
+                )),
+                trusted_controller: Addr::unchecked(String::from("trusted_controller")),
                 owner: Addr::unchecked(String::from("new_owner"))
             }
         );
@@ -344,7 +362,8 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 3,
             registry_address: String::from("new_registry_address"),
-            reverse_registrar: String::from("reverse_registrar_address"),
+            trusted_reverse_registrar: String::from("trusted_reverse_registrar_address"),
+            trusted_controller: String::from("trusted_controller"),
             owner: String::from("owner"),
         };
         let info = mock_info("new_owner", &coins(0, "uusd"));
@@ -358,7 +377,10 @@ mod tests {
             ConfigResponse {
                 interface_id: 3,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
-                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
+                trusted_reverse_registrar: Addr::unchecked(String::from(
+                    "trusted_reverse_registrar_address"
+                )),
+                trusted_controller: Addr::unchecked(String::from("trusted_controller")),
                 owner: Addr::unchecked(String::from("owner"))
             }
         );

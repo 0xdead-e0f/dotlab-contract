@@ -1,13 +1,11 @@
 use crate::error::ContractError;
 use crate::msg::{
-    CommitmentTimestampResponse, GetCommitmentResponse, IsValidNameResponse,
-    MaxCommitmentAgeResponse, MinCommitmentAgeResponse, MinRegistrationDurationResponse,
-    NodeInfoResponse, NodehashResponse, OwnerResponse, PriceResponse, RegistrarResponse,
-    RentPriceResponse, TokenIdResponse,
+    IsValidNameResponse, MinRegistrationDurationResponse, NodeInfoResponse, NodehashResponse,
+    OwnerResponse, PriceResponse, RegistrarResponse, RentPriceResponse, TokenIdResponse,
 };
-use crate::state::{COMMITMENTS, CONFIG, REGISTER_FEE_DENOM, WHITELIST};
+use crate::state::{CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
-    to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, CustomMsg, Deps, DepsMut, Env,
+    to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env,
     MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
 };
 use hex;
@@ -69,8 +67,6 @@ pub fn set_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    max_commitment_age: u64,
-    min_commitment_age: u64,
     min_registration_duration: u64,
     tier1_price: u64,
     tier2_price: u64,
@@ -89,8 +85,6 @@ pub fn set_config(
         .addr_canonicalize(reverse_registrar_address.as_str())?;
     let owner = deps.api.addr_canonicalize(owner.as_str())?;
 
-    config.max_commitment_age = max_commitment_age;
-    config.min_commitment_age = min_commitment_age;
     config.min_registration_duration = min_registration_duration;
     config.tier1_price = tier1_price;
     config.tier2_price = tier2_price;
@@ -103,8 +97,6 @@ pub fn set_config(
     CONFIG.save(deps.storage, &config)?;
     Ok(Response::new()
         .add_attribute("method", "set_config")
-        .add_attribute("max_commitment_age", max_commitment_age.to_string())
-        .add_attribute("min_commitment_age", min_commitment_age.to_string())
         .add_attribute(
             "min_registration_duration",
             min_registration_duration.to_string(),
@@ -179,34 +171,34 @@ pub fn set_referal_percentage(
         .add_attribute("whitelist_percentage", whitelist_percentage.to_string()))
 }
 
-pub fn commit(
-    deps: DepsMut,
-    env: Env,
-    _info: MessageInfo,
-    commitment: String,
-) -> Result<Response, ContractError> {
-    validate_enable_registration(deps.as_ref())?;
+// pub fn commit(
+//     deps: DepsMut,
+//     env: Env,
+//     _info: MessageInfo,
+//     commitment: String,
+// ) -> Result<Response, ContractError> {
+//     validate_enable_registration(deps.as_ref())?;
 
-    let config = CONFIG.load(deps.storage)?;
+//     let config = CONFIG.load(deps.storage)?;
 
-    let last_commit_time = COMMITMENTS
-        .may_load(deps.storage, commitment.clone())?
-        .unwrap_or(0);
-    let current = env.block.time.seconds();
+//     let last_commit_time = COMMITMENTS
+//         .may_load(deps.storage, commitment.clone())?
+//         .unwrap_or(0);
+//     let current = env.block.time.seconds();
 
-    if last_commit_time + config.max_commitment_age > current {
-        return Err(ContractError::RecommitTooEarly {
-            commit_expired: last_commit_time + config.max_commitment_age,
-            current,
-        });
-    }
+//     if last_commit_time + config.max_commitment_age > current {
+//         return Err(ContractError::RecommitTooEarly {
+//             commit_expired: last_commit_time + config.max_commitment_age,
+//             current,
+//         });
+//     }
 
-    COMMITMENTS.save(deps.storage, commitment.clone(), &current)?;
+//     COMMITMENTS.save(deps.storage, commitment.clone(), &current)?;
 
-    Ok(Response::new()
-        .add_attribute("method", "commit")
-        .add_attribute("commitment", commitment))
-}
+//     Ok(Response::new()
+//         .add_attribute("method", "commit")
+//         .add_attribute("commitment", commitment))
+// }
 
 fn validate_name(deps: Deps, name: String) -> Result<(), ContractError> {
     if !get_is_valid_name(&name)?.is_valid_name {
@@ -219,32 +211,32 @@ fn validate_name(deps: Deps, name: String) -> Result<(), ContractError> {
     Ok(())
 }
 
-pub fn consume_commitment(
-    deps: DepsMut,
-    env: Env,
-    commitment: String,
-) -> Result<(), ContractError> {
-    let config = CONFIG.load(deps.storage)?;
-    let commit_time = COMMITMENTS.may_load(deps.storage, commitment.clone())?;
-    if commit_time.is_none() {
-        return Err(ContractError::ConsumeNonexistCommitment { commitment });
-    }
+// pub fn consume_commitment(
+//     deps: DepsMut,
+//     env: Env,
+//     commitment: String,
+// ) -> Result<(), ContractError> {
+//     let config = CONFIG.load(deps.storage)?;
+//     let commit_time = COMMITMENTS.may_load(deps.storage, commitment.clone())?;
+//     if commit_time.is_none() {
+//         return Err(ContractError::ConsumeNonexistCommitment { commitment });
+//     }
 
-    let commit_time = commit_time.unwrap();
-    let current = env.block.time.seconds();
-    if commit_time + config.min_commitment_age > current
-        || commit_time + config.max_commitment_age < current
-    {
-        return Err(ContractError::CommitmentIsTooEarlyOrExpired {
-            commit_expired: commit_time + config.max_commitment_age,
-            commit_matured: commit_time + config.min_commitment_age,
-            current,
-        });
-    }
+//     let commit_time = commit_time.unwrap();
+//     let current = env.block.time.seconds();
+//     if commit_time + config.min_commitment_age > current
+//         || commit_time + config.max_commitment_age < current
+//     {
+//         return Err(ContractError::CommitmentIsTooEarlyOrExpired {
+//             commit_expired: commit_time + config.max_commitment_age,
+//             commit_matured: commit_time + config.min_commitment_age,
+//             current,
+//         });
+//     }
 
-    COMMITMENTS.remove(deps.storage, commitment);
-    Ok(())
-}
+//     COMMITMENTS.remove(deps.storage, commitment);
+//     Ok(())
+// }
 
 pub fn get_cost(deps: Deps, name: String, duration: u64) -> Result<Uint128, ContractError> {
     let config = CONFIG.load(deps.storage)?;
@@ -431,10 +423,6 @@ pub fn register(
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
 
-    let commitment_response = get_commitment(&name, &owner, &secret, &resolver, &address)?;
-    let commitment = commitment_response.commitment;
-    consume_commitment(deps.branch(), env.clone(), commitment)?;
-
     validate_register_fund(
         deps.as_ref(),
         env.clone(),
@@ -484,10 +472,6 @@ pub fn referal_register(
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
-
-    let commitment_response = get_commitment(&name, &owner, &secret, &resolver, &address)?;
-    let commitment = commitment_response.commitment;
-    consume_commitment(deps.branch(), env.clone(), commitment)?;
 
     let fund = validate_register_fund(
         deps.as_ref(),
@@ -729,29 +713,29 @@ pub fn renew(
         .add_attribute("nodehash", format!("{:?}", nodehash)))
 }
 
-pub fn get_commitment(
-    name: &String,
-    owner: &String,
-    secret: &String,
-    resolver: &Option<String>,
-    address: &Option<String>,
-) -> StdResult<GetCommitmentResponse> {
-    let label = get_label_from_name(name);
+// pub fn get_commitment(
+//     name: &String,
+//     owner: &String,
+//     secret: &String,
+//     resolver: &Option<String>,
+//     address: &Option<String>,
+// ) -> StdResult<GetCommitmentResponse> {
+//     let label = get_label_from_name(name);
 
-    let arr = [
-        &label[..],
-        owner.as_bytes(),
-        resolver.as_deref().unwrap_or(&String::from("")).as_bytes(),
-        address.as_deref().unwrap_or(&String::from("")).as_bytes(),
-        secret.as_bytes(),
-    ]
-    .concat();
+//     let arr = [
+//         &label[..],
+//         owner.as_bytes(),
+//         resolver.as_deref().unwrap_or(&String::from("")).as_bytes(),
+//         address.as_deref().unwrap_or(&String::from("")).as_bytes(),
+//         secret.as_bytes(),
+//     ]
+//     .concat();
 
-    let commitment_vec = keccak256(&arr);
-    Ok(GetCommitmentResponse {
-        commitment: hex::encode(commitment_vec),
-    })
-}
+//     let commitment_vec = keccak256(&arr);
+//     Ok(GetCommitmentResponse {
+//         commitment: hex::encode(commitment_vec),
+//     })
+// }
 
 pub fn get_nodehash(deps: Deps, label: Vec<u8>) -> StdResult<Vec<u8>> {
     let config = CONFIG.load(deps.storage)?;
@@ -789,20 +773,6 @@ pub fn is_available_name(deps: Deps, name: &String) -> StdResult<bool> {
     return Ok(is_available_response.available);
 }
 
-pub fn get_max_commitment_age(deps: Deps) -> StdResult<MaxCommitmentAgeResponse> {
-    let config = CONFIG.load(deps.storage)?;
-    Ok(MaxCommitmentAgeResponse {
-        age: config.max_commitment_age,
-    })
-}
-
-pub fn get_min_commitment_age(deps: Deps) -> StdResult<MinCommitmentAgeResponse> {
-    let config = CONFIG.load(deps.storage)?;
-    Ok(MinCommitmentAgeResponse {
-        age: config.min_commitment_age,
-    })
-}
-
 pub fn get_owner(deps: Deps) -> StdResult<OwnerResponse> {
     let config = CONFIG.load(deps.storage)?;
     let owner = deps.api.addr_humanize(&config.owner)?;
@@ -825,13 +795,13 @@ pub fn get_rent_price(deps: Deps, name: String, duration: u64) -> StdResult<Rent
     })
 }
 
-pub fn get_commitment_timestamp(
-    deps: Deps,
-    commitment: String,
-) -> StdResult<CommitmentTimestampResponse> {
-    let timestamp = COMMITMENTS.load(deps.storage, commitment)?;
-    Ok(CommitmentTimestampResponse { timestamp })
-}
+// pub fn get_commitment_timestamp(
+//     deps: Deps,
+//     commitment: String,
+// ) -> StdResult<CommitmentTimestampResponse> {
+//     let timestamp = COMMITMENTS.load(deps.storage, commitment)?;
+//     Ok(CommitmentTimestampResponse { timestamp })
+// }
 
 pub fn get_min_registration_duration(deps: Deps) -> StdResult<MinRegistrationDurationResponse> {
     let config = CONFIG.load(deps.storage)?;
