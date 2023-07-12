@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub interface_id: u64,
     pub registry_address: String,
+    pub reverse_registrar: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -13,7 +14,6 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     SetAddress {
         node: Vec<u8>,
-        coin_type: u64,
         address: String,
     },
     SetSeiAddress {
@@ -32,20 +32,25 @@ pub enum ExecuteMsg {
     SetConfig {
         interface_id: u64,
         registry_address: String,
+        reverse_registrar: String,
         owner: String,
     },
     SetName {
         address: String,
-        coin_type: u64,
         name: String,
+    },
+    SetAvatar {
+        node: Vec<u8>,
+        avatar_uri: String,
     },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    GetAddress { node: Vec<u8>, coin_type: u64 },
-    GetName { address: String, coin_type: u64 },
+    GetAddress { node: Vec<u8> },
+    GetAvatar {node: Vec<u8> },
+    GetName { address: String },
     GetTextData { node: Vec<u8>, key: String },
     GetSeiAddress { node: Vec<u8> },
     GetContentHash { node: Vec<u8> },
@@ -55,6 +60,11 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AddressResponse {
     pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct AvatarResponse {
+    pub avatar_uri: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -76,6 +86,7 @@ pub struct ContentHashResponse {
 pub struct ConfigResponse {
     pub interface_id: u64,
     pub registry_address: Addr,
+    pub reverse_registrar: Addr,
     pub owner: Addr,
 }
 

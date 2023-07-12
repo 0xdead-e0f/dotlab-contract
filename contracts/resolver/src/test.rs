@@ -17,13 +17,13 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("not_owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         let msg = ExecuteMsg::SetAddress {
             node: namehash("test.ust"),
-            coin_type: 0,
             address: String::from("new_address"),
         };
         let err = execute(
@@ -49,6 +49,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -56,7 +57,6 @@ mod tests {
         let msg = ExecuteMsg::SetName {
             name: "test.ust".to_string(),
             address: String::from("new_address"),
-            coin_type: 1,
         };
         execute(
             deps.as_mut(),
@@ -68,7 +68,6 @@ mod tests {
 
         let query_msg = QueryMsg::GetName {
             address: String::from("new_address"),
-            coin_type: 1,
         };
 
         let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
@@ -90,6 +89,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -98,7 +98,6 @@ mod tests {
         let msg = ExecuteMsg::SetAddress {
             node: namehash("test.ust"),
             address: String::from("new_address"),
-            coin_type: 1,
         };
         execute(
             deps.as_mut(),
@@ -110,7 +109,6 @@ mod tests {
 
         let query_msg = QueryMsg::GetAddress {
             node: namehash("test.ust"),
-            coin_type: 1,
         };
 
         let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
@@ -132,6 +130,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -173,6 +172,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -213,6 +213,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -227,7 +228,6 @@ mod tests {
 
         let query_msg = QueryMsg::GetAddress {
             node: namehash("alice.ust"),
-            coin_type: 0x80001234,
         };
 
         let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
@@ -249,6 +249,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -256,6 +257,7 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
@@ -269,6 +271,7 @@ mod tests {
             ConfigResponse {
                 interface_id: 2,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
+                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
                 owner: Addr::unchecked(String::from("new_owner"))
             }
         );
@@ -281,6 +284,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -288,6 +292,7 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("not_owner", &coins(0, "uusd"));
@@ -309,6 +314,7 @@ mod tests {
         let msg = InstantiateMsg {
             interface_id: 1,
             registry_address: String::from("registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -316,6 +322,7 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 2,
             registry_address: String::from("new_registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
             owner: String::from("new_owner"),
         };
         let info = mock_info("owner", &coins(0, "uusd"));
@@ -329,6 +336,7 @@ mod tests {
             ConfigResponse {
                 interface_id: 2,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
+                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
                 owner: Addr::unchecked(String::from("new_owner"))
             }
         );
@@ -336,6 +344,7 @@ mod tests {
         let msg = ExecuteMsg::SetConfig {
             interface_id: 3,
             registry_address: String::from("new_registry_address"),
+            reverse_registrar: String::from("reverse_registrar_address"),
             owner: String::from("owner"),
         };
         let info = mock_info("new_owner", &coins(0, "uusd"));
@@ -349,6 +358,7 @@ mod tests {
             ConfigResponse {
                 interface_id: 3,
                 registry_address: Addr::unchecked(String::from("new_registry_address")),
+                reverse_registrar: Addr::unchecked(String::from("reverse_registrar_address")),
                 owner: Addr::unchecked(String::from("owner"))
             }
         );

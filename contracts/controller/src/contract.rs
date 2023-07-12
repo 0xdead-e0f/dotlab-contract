@@ -63,6 +63,7 @@ pub fn execute(
             resolver,
             address,
             description,
+            reverse_record,
         } => register(
             deps,
             env,
@@ -74,6 +75,7 @@ pub fn execute(
             resolver,
             address,
             description,
+            reverse_record,
         ),
         ExecuteMsg::ReferalRegister {
             name,
@@ -84,6 +86,7 @@ pub fn execute(
             address,
             referer,
             description,
+            reverse_record,
         } => referal_register(
             deps,
             env,
@@ -96,6 +99,7 @@ pub fn execute(
             address,
             referer,
             description,
+            reverse_record,
         ),
         ExecuteMsg::Renew { name, duration } => renew(deps, env, info, name, duration),
 
@@ -134,6 +138,7 @@ pub fn execute(
             resolver,
             address,
             description,
+            reverse_record,
         } => owner_register(
             deps,
             env,
@@ -144,6 +149,7 @@ pub fn execute(
             resolver,
             address,
             description,
+            reverse_record,
         ),
         ExecuteMsg::OwnerRenew { name, duration } => owner_renew(deps, env, info, name, duration),
         ExecuteMsg::SetEnableRegistration {

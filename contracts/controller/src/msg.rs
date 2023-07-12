@@ -29,6 +29,7 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         address: Option<String>,
         description: Option<String>,
+        reverse_record: bool,
     },
     ReferalRegister {
         name: String,
@@ -39,6 +40,7 @@ pub enum ExecuteMsg {
         address: Option<String>,
         referer: Option<String>,
         description: Option<String>,
+        reverse_record: bool,
     },
     OwnerRegister {
         name: String,
@@ -47,6 +49,7 @@ pub enum ExecuteMsg {
         resolver: Option<String>,
         address: Option<String>,
         description: Option<String>,
+        reverse_record: bool,
     },
     SetConfig {
         max_commitment_age: u64,

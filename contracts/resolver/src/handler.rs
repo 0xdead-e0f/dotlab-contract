@@ -1,4 +1,5 @@
 use crate::error::ContractError;
+use crate::state::AVATARS;
 use crate::state::CONTENT_HASH;
 use crate::state::NAMES;
 use crate::state::TEXT_DATA;
@@ -6,9 +7,9 @@ use crate::state::{ADDRESSES, CONFIG};
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryRequest, Response, StdResult, WasmQuery,
 };
-use dotlabs::OUR_COIN_TYPE;
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
+use dotlabs::resolver::AvatarResponse;
 use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
 use dotlabs::utils::namehash;
@@ -31,6 +32,10 @@ pub fn only_authorized(
     node: &Vec<u8>,
 ) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
+
+    if info.sender.to_string() == config.reverse_registrar.to_string() {
+        return Ok(true);
+    }
 
     let registry_address = deps
         .api
@@ -58,11 +63,22 @@ pub fn set_address(
     _env: Env,
     info: MessageInfo,
     node: Vec<u8>,
-    coin_type: u64,
     address: String,
 ) -> Result<Response, ContractError> {
     only_authorized(&deps, &info, &node)?;
-    ADDRESSES.save(deps.storage, (node, coin_type), &address)?;
+    ADDRESSES.save(deps.storage, node, &address)?;
+    Ok(Response::default())
+}
+
+pub fn set_avatar(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    node: Vec<u8>,
+    avatar_uri: String,
+) -> Result<Response, ContractError> {
+    only_authorized(&deps, &info, &node)?;
+    AVATARS.save(deps.storage, node, &avatar_uri)?;
     Ok(Response::default())
 }
 
@@ -79,7 +95,6 @@ pub fn set_sei_address(
         env,
         info,
         node,
-        OUR_COIN_TYPE,
         sei_address.to_string(),
     );
 }
@@ -89,12 +104,14 @@ pub fn set_name(
     _env: Env,
     info: MessageInfo,
     address: String,
-    coin_type: u64,
     name: String,
 ) -> Result<Response, ContractError> {
-    let namehash = namehash(&name);
-    only_authorized(&deps, &info, &namehash)?;
-    NAMES.save(deps.storage, (address, coin_type), &name)?;
+    let namehash_node = namehash(&name);
+    only_authorized(&deps, &info, &namehash_node)?;
+
+    let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
+
+    NAMES.save(deps.storage, address_namehash, &name)?;
     Ok(Response::default())
 }
 
@@ -102,24 +119,32 @@ pub fn query_address(
     deps: Deps,
     _env: Env,
     node: Vec<u8>,
-    coin_type: u64,
 ) -> StdResult<AddressResponse> {
-    let address = ADDRESSES.load(deps.storage, (node, coin_type))?;
+    let address = ADDRESSES.load(deps.storage, node)?;
     Ok(AddressResponse { address: address })
+}
+
+pub fn query_avatar(
+    deps: Deps,
+    _env: Env,
+    node: Vec<u8>,
+) -> StdResult<AvatarResponse> {
+    let avatar_uri = AVATARS.load(deps.storage, node)?;
+    Ok(AvatarResponse { avatar_uri })
 }
 
 pub fn query_name(
     deps: Deps,
     _env: Env,
     address: String,
-    coin_type: u64,
 ) -> StdResult<NameResponse> {
-    let name = NAMES.load(deps.storage, (address, coin_type))?;
+    let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
+    let name = NAMES.load(deps.storage, address_namehash)?;
     Ok(NameResponse { name })
 }
 
 pub fn query_sei_address(deps: Deps, env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
-    return query_address(deps, env, node, OUR_COIN_TYPE);
+    return query_address(deps, env, node);
 }
 
 pub fn set_text_data(
@@ -170,6 +195,7 @@ pub fn set_config(
     info: MessageInfo,
     interface_id: u64,
     registry_address: String,
+    reverse_registrar: String,
     owner: String,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
@@ -194,9 +220,11 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
     let config = CONFIG.load(deps.storage)?;
     let owner = deps.api.addr_humanize(&config.owner)?;
     let registry_address = deps.api.addr_humanize(&config.registry_address)?;
+    let reverse_registrar = deps.api.addr_humanize(&config.reverse_registrar)?;
     Ok(ConfigResponse {
         interface_id: config.interface_id,
         registry_address,
+        reverse_registrar,
         owner,
     })
 }

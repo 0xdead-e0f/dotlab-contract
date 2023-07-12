@@ -1,7 +1,7 @@
 use crate::error::ContractError;
 use crate::handler::{
     get_config, query_address, query_content_hash, query_name, query_sei_address, query_text_data,
-    set_address, set_config, set_content_hash, set_name, set_sei_address, set_text_data,
+    set_address, set_config, set_content_hash, set_name, set_sei_address, set_text_data, set_avatar, query_avatar,
 };
 use crate::state::{Config, CONFIG};
 #[cfg(not(feature = "library"))]
@@ -17,12 +17,14 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let registry_address = deps.api.addr_canonicalize(msg.registry_address.as_str())?;
+    let reverse_registrar = deps.api.addr_canonicalize(msg.reverse_registrar.as_str())?;
     let sender = deps.api.addr_canonicalize(info.sender.as_str())?;
     CONFIG.save(
         deps.storage,
         &Config {
             interface_id: msg.interface_id,
             registry_address,
+            reverse_registrar,
             owner: sender.clone(),
         },
     )?;
@@ -39,14 +41,13 @@ pub fn execute(
     match msg {
         ExecuteMsg::SetAddress {
             node,
-            coin_type,
             address,
-        } => set_address(deps, env, info, node, coin_type, address),
+        } => set_address(deps, env, info, node, address),
+        ExecuteMsg::SetAvatar { node, avatar_uri } => set_avatar(deps, env, info, node, avatar_uri),
         ExecuteMsg::SetName {
             address,
-            coin_type,
             name,
-        } => set_name(deps, env, info, address, coin_type, name),
+        } => set_name(deps, env, info, address, name),
         ExecuteMsg::SetSeiAddress { node, address } => {
             set_sei_address(deps, env, info, node, address)
         }
@@ -57,19 +58,23 @@ pub fn execute(
         ExecuteMsg::SetConfig {
             interface_id,
             registry_address,
+            reverse_registrar,
             owner,
-        } => set_config(deps, env, info, interface_id, registry_address, owner),
+        } => set_config(deps, env, info, interface_id, registry_address, reverse_registrar, owner),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetAddress { node, coin_type } => {
-            to_binary(&query_address(deps, env, node, coin_type)?)
+        QueryMsg::GetAddress { node } => {
+            to_binary(&query_address(deps, env, node)?)
         }
-        QueryMsg::GetName { address, coin_type } => {
-            to_binary(&query_name(deps, env, address, coin_type)?)
+        QueryMsg::GetAvatar { node } => {
+            to_binary(&query_avatar(deps, env, node)?)
+        }
+        QueryMsg::GetName { address } => {
+            to_binary(&query_name(deps, env, address)?)
         }
         QueryMsg::GetSeiAddress { node } => to_binary(&query_sei_address(deps, env, node)?),
         QueryMsg::GetTextData { node, key } => to_binary(&query_text_data(deps, env, node, key)?),

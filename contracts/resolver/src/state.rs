@@ -8,14 +8,17 @@ use cw_storage_plus::{Item, Map};
 pub struct Config {
     pub interface_id: u64,
     pub registry_address: CanonicalAddr,
+    pub reverse_registrar: CanonicalAddr,
     pub owner: CanonicalAddr,
 }
 
 pub const CONFIG: Item<Config> = Item::new("CONFIG");
 
-pub const ADDRESSES: Map<(Vec<u8>, u64), String> = Map::new("ADDRESSES");
+pub const ADDRESSES: Map<Vec<u8>, String> = Map::new("ADDRESSES");
 
-pub const NAMES: Map<(String, u64), String> = Map::new("NAMES");
+pub const AVATARS: Map<Vec<u8>, String> = Map::new("AVATARS");
+
+pub const NAMES: Map<Vec<u8>, String> = Map::new("NAMES");
 
 pub const TEXT_DATA: Map<(Vec<u8>, String), String> = Map::new("TEXT");
 

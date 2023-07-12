@@ -44,7 +44,6 @@ mod tests {
             contract_addr: "resolver_address".to_string(),
             msg: to_binary(&dotlabs::resolver::ExecuteMsg::SetName {
                 address: address.clone(),
-                coin_type: OUR_COIN_TYPE,
                 name: String::from("alice.eth"),
             })
             .unwrap(),

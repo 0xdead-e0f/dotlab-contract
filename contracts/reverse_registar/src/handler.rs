@@ -130,7 +130,6 @@ pub fn set_name_for_addr(
         msg: to_binary(&ResolverMsg::SetName {
             address,
             name,
-            coin_type: OUR_COIN_TYPE,
         })?,
         funds: vec![],
     });

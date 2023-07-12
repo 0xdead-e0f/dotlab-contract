@@ -285,6 +285,7 @@ fn _register(
     resolver: Option<String>,
     address: Option<String>,
     description: Option<String>,
+    reverse_record: bool,
 ) -> Result<Vec<CosmosMsg>, ContractError> {
     let mut messages: Vec<CosmosMsg> = vec![];
 
@@ -368,11 +369,14 @@ fn _register(
     });
     messages.push(transfer_nft_registrar_msg);
 
-    if let Some(addr) = address {
-        set_reverse_record(deps, name, addr, resolver, owner.to_string())?;
+    if reverse_record {
+        if let Some(addr) = address {
+            set_reverse_record(deps, name, addr, resolver, owner.to_string())?;
+        }
     }
 
     Ok(messages)
+    
 }
 
 fn validate_register_fund(
@@ -421,6 +425,7 @@ pub fn register(
     resolver: Option<String>,
     address: Option<String>,
     description: Option<String>,
+    reverse_record: bool
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -446,6 +451,7 @@ pub fn register(
         resolver,
         address,
         description,
+        reverse_record
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -473,6 +479,7 @@ pub fn referal_register(
     address: Option<String>,
     referer_ensname: Option<String>,
     description: Option<String>,
+    reverse_record: bool
 ) -> Result<Response, ContractError> {
     validate_name(deps.as_ref(), name.clone())?;
     validate_enable_registration(deps.as_ref())?;
@@ -498,6 +505,7 @@ pub fn referal_register(
         resolver,
         address,
         description,
+        reverse_record,
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
@@ -610,6 +618,7 @@ pub fn owner_register(
     resolver: Option<String>,
     address: Option<String>,
     description: Option<String>,
+    reverse_record: bool
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
 
@@ -626,6 +635,7 @@ pub fn owner_register(
         resolver,
         address,
         description,
+        reverse_record
     )?;
 
     let label: Vec<u8> = get_label_from_name(&name);
