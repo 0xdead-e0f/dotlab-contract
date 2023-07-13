@@ -116,7 +116,7 @@ pub fn claim(
     owner: String,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
-    let resolver = config.resolver_address;
+    let resolver = deps.api.addr_humanize(&config.resolver_address)?;
     claim_for_addr(
         deps,
         env,
@@ -164,7 +164,7 @@ pub fn set_name(
     name: String,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
-    let resolver = config.resolver_address;
+    let resolver = deps.api.addr_humanize(&config.resolver_address)?;
     set_name_for_addr(
         deps,
         env,
