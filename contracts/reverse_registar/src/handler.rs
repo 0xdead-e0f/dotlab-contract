@@ -54,7 +54,7 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 pub fn get_reverse_record(deps: Deps, node: Vec<u8>) -> StdResult<RecordResponse> {
     let config = CONFIG.load(deps.storage)?;
-    let registry_address = config.registry_address;
+    let registry_address = deps.api.addr_humanize(&config.registry_address)?;
     let get_registry_response: RegistryRecordResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: registry_address.to_string(),
@@ -80,8 +80,7 @@ pub fn claim_for_addr(
     let mut messages: Vec<CosmosMsg> = vec![];
 
     let config = CONFIG.load(deps.storage)?;
-    let registry_address = config.registry_address.clone().to_string();
-
+    let registry_address = deps.api.addr_humanize(&config.registry_address)?;
     let labelhash = get_label_from_name(&address);
     let reverse_node = namehash((address + &".addr.reverse".to_string()).as_str());
     let set_subnode_owner_registry_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -134,13 +133,14 @@ pub fn set_name_for_addr(
     name: String,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
+    let config_resolver = deps.api.addr_humanize(&config.resolver_address)?;
     let node = claim_for_addr(deps, env, info, address.clone(), owner, resolver.clone())?;
     let resolver_address;
 
     if let Some(resolver) = resolver {
         resolver_address = resolver.clone()
     } else {
-        resolver_address = config.resolver_address.clone().to_string();
+        resolver_address = config_resolver.to_string();
     }
 
     let set_name_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
