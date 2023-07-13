@@ -71,13 +71,15 @@ pub fn get_reverse_record(deps: Deps, node: Vec<u8>) -> StdResult<RecordResponse
 
 pub fn claim_for_addr(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     address: String,
     owner: String,
     resolver: Option<String>,
 ) -> Result<Response, ContractError> {
     let mut messages: Vec<CosmosMsg> = vec![];
+
+    let contract_address = env.contract.address;
 
     let config = CONFIG.load(deps.storage)?;
     let registry_address = deps.api.addr_humanize(&config.registry_address)?;
@@ -87,21 +89,23 @@ pub fn claim_for_addr(
         contract_addr: registry_address.to_string(),
         msg: to_binary(&RegistryExecuteMsg::SetSubnodeOwner {
             node: namehash(&"addr.reverse".to_string()),
-            owner: owner.clone(),
+            owner: contract_address.to_string(),
             label: labelhash,
         })?,
         funds: vec![],
     });
     messages.push(set_subnode_owner_registry_msg);
-    let set_resolver_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+    let set_record_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: registry_address.to_string(),
-        msg: to_binary(&RegistryExecuteMsg::SetResolver {
+        msg: to_binary(&RegistryExecuteMsg::SetRecord {
             node: reverse_node,
+            owner,
+            ttl: 0u64,
             resolver,
         })?,
         funds: vec![],
     });
-    messages.push(set_resolver_msg);
+    messages.push(set_record_msg);
     Ok(Response::new().add_messages(messages))
 }
 
