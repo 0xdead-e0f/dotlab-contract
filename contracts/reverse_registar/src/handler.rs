@@ -8,16 +8,30 @@ use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::registry::RecordResponse as RegistryRecordResponse;
 use dotlabs::resolver::ExecuteMsg as ResolverMsg;
 use dotlabs::reverse_registar::ConfigResponse;
+use dotlabs::reverse_registar::RecordResponse;
 use dotlabs::utils::{get_label_from_name, namehash};
+
+fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    let sender = deps.api.addr_canonicalize(info.sender.as_str())?;
+    if sender != config.owner {
+        return Err(ContractError::NotOwner {
+            sender: info.sender.to_string(),
+            owner: deps.api.addr_humanize(&config.owner)?.to_string(),
+        });
+    }
+    Ok(true)
+}
 
 pub fn set_config(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     resolver_address: String,
     registry_address: String,
     owner: String,
 ) -> Result<Response, ContractError> {
+    only_owner(deps.as_ref(), &info)?;
     let mut config = CONFIG.load(deps.storage)?;
     config.owner = deps.api.addr_canonicalize(owner.as_str())?;
     config.resolver_address = deps.api.addr_canonicalize(resolver_address.as_str())?;
@@ -38,7 +52,7 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
-pub fn get_reverse_record(deps: Deps, node: Vec<u8>) -> StdResult<RegistryRecordResponse> {
+pub fn get_reverse_record(deps: Deps, node: Vec<u8>) -> StdResult<RecordResponse> {
     let config = CONFIG.load(deps.storage)?;
     let registry_address = config.registry_address;
     let get_registry_response: RegistryRecordResponse =
@@ -46,8 +60,13 @@ pub fn get_reverse_record(deps: Deps, node: Vec<u8>) -> StdResult<RegistryRecord
             contract_addr: registry_address.to_string(),
             msg: to_binary(&RegistryQueryMsg::GetRecordByNode { node })?,
         }))?;
-    Ok(get_registry_response)
-    // let registry_address = String::from(get_registry_response.registry);
+    let record_response = RecordResponse {
+        owner: get_registry_response.owner,
+        resolver: get_registry_response.resolver,
+        ttl: get_registry_response.ttl,
+    };
+
+    Ok(record_response)
 }
 
 pub fn claim_for_addr(

@@ -1,8 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Addr;
 
-use crate::registry::RecordResponse;
-
 //#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -47,6 +45,13 @@ pub enum QueryMsg {
     GetConfig {},
     #[returns(RecordResponse)]
     GetReverseRecord { node: Vec<u8> },
+}
+
+#[cw_serde]
+pub struct RecordResponse {
+    pub owner: Addr,
+    pub resolver: Addr,
+    pub ttl: u64,
 }
 
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

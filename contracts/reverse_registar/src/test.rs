@@ -3,6 +3,21 @@ mod tests {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, to_binary, CosmosMsg, WasmMsg};
     use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg};
+    use dotlabs::utils::{get_label_from_name, namehash};
+
+    // #[test]
+    // fn test_xxxxxxxxx() {
+    //     let address = "sei12klaltyqvg2j6v034jwdxrk5n4242ttsztzqqk".to_string();
+    //     let labelhash = get_label_from_name(&address);
+    //     println!("{:?}", namehash("addr.reverse"));
+    //     let reverse_node1 = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
+    //     let reverse_node = namehash([address, ".addr.reverse".to_string()].concat().as_str());
+
+    //     assert_eq!(reverse_node1, reverse_node);
+    //     let kk = [namehash("addr.reverse"), labelhash].concat();
+    //     let kk = dotlabs::utils::keccak256(&kk);
+    //     assert_eq!(reverse_node, kk);
+    // }
 
     #[test]
     fn test_reverse_record() {
