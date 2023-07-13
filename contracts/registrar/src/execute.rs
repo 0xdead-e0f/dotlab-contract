@@ -1,11 +1,10 @@
 use crate::error::ContractError;
 use crate::state::{Approval, Config, Cw721Contract, TokenInfo, CONFIG};
-use crate::utils::decode_node_string_to_bytes;
 use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use cw721::{ContractInfoResponse, Cw721Execute, Cw721ReceiveMsg, Expiration};
-use dotlabs::registrar::{ExecuteMsg, Extension, InstantiateMsg, MintMsg};
-use dotlabs::utils::{generate_image, namehash};
+use dotlabs::registrar::{ExecuteMsg, InstantiateMsg, MintMsg};
+use dotlabs::utils::namehash;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 

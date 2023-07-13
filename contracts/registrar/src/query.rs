@@ -1,6 +1,6 @@
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 use crate::state::{CONFIG, EXPIRIES};
-use crate::utils::{decode_node_string_to_bytes, encode_node_bytes_to_string};
+use crate::utils::encode_node_bytes_to_string;
 use cosmwasm_std::{
     to_binary, Binary, BlockInfo, CustomMsg, Deps, Env, Order, StdError, StdResult,
 };

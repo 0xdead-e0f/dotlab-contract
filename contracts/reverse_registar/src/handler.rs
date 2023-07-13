@@ -9,7 +9,6 @@ use dotlabs::registry::RecordResponse as RegistryRecordResponse;
 use dotlabs::resolver::ExecuteMsg as ResolverMsg;
 use dotlabs::reverse_registar::ConfigResponse;
 use dotlabs::utils::{get_label_from_name, namehash};
-use dotlabs::OUR_COIN_TYPE;
 
 pub fn set_config(
     deps: DepsMut,

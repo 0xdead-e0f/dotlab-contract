@@ -1,11 +1,10 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Coin, ContractResult, Decimal, OwnedDeps, Querier,
-    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery,
+    from_binary, from_slice, to_binary, Coin, ContractResult, OwnedDeps, Querier, QuerierResult,
+    QueryRequest, SystemError, SystemResult, WasmQuery,
 };
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
-use sei_cosmwasm::{SeiQuery, SeiQueryWrapper, SeiRoute};
-use std::collections::HashMap;
+use sei_cosmwasm::SeiQueryWrapper;
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
@@ -25,31 +24,6 @@ pub fn mock_dependencies(
 
 pub struct WasmMockQuerier {
     base: MockQuerier<SeiQueryWrapper>,
-    // tax_querier: TaxQuerier,
-}
-
-#[derive(Clone, Default)]
-pub struct TaxQuerier {
-    rate: Decimal,
-    // this lets us iterate over all pairs that match the first string
-    caps: HashMap<String, Uint128>,
-}
-
-impl TaxQuerier {
-    pub fn new(rate: Decimal, caps: &[(&String, &Uint128)]) -> Self {
-        TaxQuerier {
-            rate,
-            caps: caps_to_map(caps),
-        }
-    }
-}
-
-pub(crate) fn caps_to_map(caps: &[(&String, &Uint128)]) -> HashMap<String, Uint128> {
-    let mut owner_map: HashMap<String, Uint128> = HashMap::new();
-    for (denom, cap) in caps.iter() {
-        owner_map.insert(denom.to_string(), **cap);
-    }
-    owner_map
 }
 
 impl Querier for WasmMockQuerier {
@@ -71,31 +45,6 @@ impl Querier for WasmMockQuerier {
 impl WasmMockQuerier {
     pub fn handle_query(&self, request: &QueryRequest<SeiQueryWrapper>) -> QuerierResult {
         match &request {
-            // QueryRequest::Custom(SeiQueryWrapper { route, query_data }) => {
-            //     if &TerraRoute::Treasury == route {
-            //         match query_data {
-            //             TerraQuery::TaxRate {} => {
-            //                 let res = TaxRateResponse {
-            //                     rate: self.tax_querier.rate,
-            //                 };
-            //                 SystemResult::Ok(ContractResult::Ok(to_binary(&res).unwrap()))
-            //             }
-            //             TerraQuery::TaxCap { denom } => {
-            //                 let cap = self
-            //                     .tax_querier
-            //                     .caps
-            //                     .get(denom)
-            //                     .copied()
-            //                     .unwrap_or_default();
-            //                 let res = TaxCapResponse { cap };
-            //                 SystemResult::Ok(ContractResult::Ok(to_binary(&res).unwrap()))
-            //             }
-            //             _ => panic!("DO NOT ENTER HERE"),
-            //         }
-            //     } else {
-            //         panic!("DO NOT ENTER HERE")
-            //     }
-            // }
             QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: _,
                 msg,

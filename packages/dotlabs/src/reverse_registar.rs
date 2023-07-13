@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Addr;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+
+use crate::registry::RecordResponse;
 
 //#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[cw_serde]
@@ -41,9 +41,11 @@ pub enum ExecuteMsg {
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 // #[serde(rename_all = "snake_case")]
 #[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
-    // GetNode { address: String },
+    #[returns(ConfigResponse)]
     GetConfig {},
+    #[returns(RecordResponse)]
     GetReverseRecord { node: Vec<u8> },
 }
 

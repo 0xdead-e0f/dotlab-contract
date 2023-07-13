@@ -1,23 +1,17 @@
 #![cfg(test)]
 use crate::entry;
 use crate::error::ContractError;
-use crate::state::{Cw721Contract, CONFIG};
-use crate::utils::decode_node_string_to_bytes;
+use crate::state::Cw721Contract;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
     coins, from_binary, to_binary, Addr, CosmosMsg, DepsMut, Empty, Response, WasmMsg,
 };
-use cw0::Expiration;
 use cw721;
-use cw721::{
-    Approval, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Cw721Query,
-    Cw721ReceiveMsg, NftInfoResponse, OwnerOfResponse,
-};
+use cw721::{ContractInfoResponse, Cw721Query, Cw721ReceiveMsg, NftInfoResponse, OwnerOfResponse};
 use dotlabs::registrar::{
     ConfigResponse, ExecuteMsg, Extension, InstantiateMsg, IsAvailableResponse, MintMsg, QueryMsg,
 };
 use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
-use dotlabs::utils::{generate_image, namehash};
 
 const CONTRACT_NAME: &str = "Magic Power";
 const SYMBOL: &str = "MGK";
@@ -131,8 +125,6 @@ fn minting() {
 
     // this nft info is correct
     let info = contract.nft_info(deps.as_ref(), token_id.clone()).unwrap();
-
-    let timestamp = mock_env().block.time.seconds();
 
     assert_eq!(
         info,
@@ -610,7 +602,6 @@ fn test_register() {
     )
     .unwrap();
     let nft_info_response: NftInfoResponse<Extension> = from_binary(&nft_info_query).unwrap();
-    let timestamp = mock_env().block.time.seconds();
     assert_eq!(
         nft_info_response.token_uri,
         Some("https://dotman.lab/tokens/9c0257114eb9399a2985f8e75dad7600c5d89fe3824ffa99ec1c3eb8bf3b0501".to_string())

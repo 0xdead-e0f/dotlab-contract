@@ -9,7 +9,7 @@ mod tests {
     };
     use cosmwasm_std::testing::{mock_env, mock_info};
     use cosmwasm_std::{
-        coins, from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Timestamp, Uint128, WasmMsg,
+        coins, from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Uint128, WasmMsg,
     };
     use dotlabs::registrar::{ExecuteMsg as RegistrarExecuteMsg, Extension};
     use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
@@ -116,10 +116,8 @@ mod tests {
 
         let name = String::from("alice");
         let owner = String::from("alice");
-        let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -137,7 +135,7 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
+
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             reverse_record: false,
@@ -221,10 +219,8 @@ mod tests {
 
         let name = String::from("Alice");
         let owner = String::from("alice");
-        let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -242,7 +238,6 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
             reverse_record: false,
@@ -399,10 +394,9 @@ mod tests {
 
         let name = String::from("alice");
         let owner = String::from("alice");
-        let secret = String::from("tns_secret");
+
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -420,7 +414,7 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
+
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
 
@@ -444,7 +438,7 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
+
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
 
@@ -476,10 +470,8 @@ mod tests {
 
         let name = String::from("alice");
         let owner = String::from("alice");
-        let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -502,7 +494,7 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
+
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
 
@@ -542,10 +534,8 @@ mod tests {
 
         let name = String::from("alice");
         let owner = String::from("alice");
-        let secret = String::from("tns_secret");
         let resolver = String::from("registry_address");
         let address = String::from("alice_addr");
-        let info = mock_info("alice", &coins(0, "usei"));
 
         let duration: u64 = 24 * 3600 * 365;
         let res = query(
@@ -564,7 +554,7 @@ mod tests {
             name: name.clone(),
             owner: owner.clone(),
             duration: duration.clone(),
-            secret: secret.clone(),
+
             resolver: Some(resolver.clone()),
             address: Some(address.clone()),
 
@@ -804,7 +794,6 @@ mod tests {
     fn test_cannot_set_config_if_not_owner() {
         let mut deps = mock_dependencies(&[]);
         let registrar_address = String::from("registrar_address");
-        let reverse_registrar_address = String::from("reverse_registrar_address");
         let reverse_registrar_address = String::from("reverse_registrar_address");
         let msg = InstantiateMsg {
             registrar_address: registrar_address.clone(),

@@ -5,7 +5,7 @@ use cosmwasm_std::{
     to_binary, CosmosMsg, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg,
 };
 use dotlabs::registry::ExecuteMsg as RegistryExecuteMsg;
-use dotlabs::utils::{generate_image, get_label_from_name, get_token_id_from_label};
+use dotlabs::utils::{get_label_from_name, get_token_id_from_label};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 

@@ -1,15 +1,12 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Addr, Binary, Coin, ContractResult, Decimal, Empty,
-    OwnedDeps, Querier, QuerierResult, QueryRequest, StdError, StdResult, SystemError,
-    SystemResult, Uint128, WasmQuery,
+    from_binary, from_slice, to_binary, Addr, Coin, ContractResult, Empty, OwnedDeps, Querier,
+    QuerierResult, QueryRequest, SystemError, SystemResult, WasmQuery,
 };
 use dotlabs::registrar::{
     GetBaseNodeResponse, GetRegistryResponse, IsAvailableResponse, QueryMsg as RegistrarQueryMsg,
 };
-use schemars::JsonSchema;
 use sei_cosmwasm::SeiQueryWrapper;
-use std::collections::HashMap;
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
 pub fn mock_dependencies(
@@ -47,13 +44,13 @@ pub struct WasmMockQuerier {
 //     }
 // }
 
-pub(crate) fn caps_to_map(caps: &[(&String, &Uint128)]) -> HashMap<String, Uint128> {
-    let mut owner_map: HashMap<String, Uint128> = HashMap::new();
-    for (denom, cap) in caps.iter() {
-        owner_map.insert(denom.to_string(), **cap);
-    }
-    owner_map
-}
+// pub(crate) fn caps_to_map(caps: &[(&String, &Uint128)]) -> HashMap<String, Uint128> {
+//     let mut owner_map: HashMap<String, Uint128> = HashMap::new();
+//     for (denom, cap) in caps.iter() {
+//         owner_map.insert(denom.to_string(), **cap);
+//     }
+//     owner_map
+// }
 
 impl Querier for WasmMockQuerier {
     fn raw_query(&self, bin_request: &[u8]) -> QuerierResult {
@@ -98,7 +95,6 @@ impl WasmMockQuerier {
                 _ => {
                     panic!("DO NOT ENTER HERE")
                 }
-                Err(_) => panic!("DO NOT ENTER HERE"),
             },
             _ => self.base.handle_query(request),
         }

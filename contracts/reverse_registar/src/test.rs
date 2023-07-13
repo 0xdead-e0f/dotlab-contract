@@ -1,14 +1,8 @@
 mod tests {
-    use crate::contract::{execute, instantiate, query};
-    use crate::error::ContractError;
+    use crate::contract::{execute, instantiate};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{coins, from_binary, to_binary, Addr, CosmosMsg, Response, WasmMsg};
-    use dotlabs::registry::RecordResponse;
-    use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg, QueryMsg};
-    use dotlabs::utils::{
-        convert_namehash_to_hex_string, get_label_from_name, keccak256, namehash,
-    };
-    use dotlabs::{resolver, OUR_COIN_TYPE};
+    use cosmwasm_std::{coins, to_binary, CosmosMsg, WasmMsg};
+    use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg};
 
     #[test]
     fn test_reverse_record() {
@@ -29,16 +23,6 @@ mod tests {
             name: String::from("alice.eth"),
         };
         let result = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
-
-        // let reverse_node = namehash((address + &".addr.reverse".to_string()).as_str());
-
-        // let query_msg = QueryMsg::GetReverseRecord {
-        //     node: reverse_node
-        // };
-
-        // let res = query(deps.as_ref(), mock_env(), info, query_msg.clone()).unwrap();
-
-        // let res: RecordResponse = from_binary(&res).unwrap();
 
         let resolver_set_name_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: "resolver_address".to_string(),

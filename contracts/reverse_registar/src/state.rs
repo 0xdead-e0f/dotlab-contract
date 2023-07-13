@@ -1,5 +1,5 @@
-use cosmwasm_std::{Addr, CanonicalAddr};
-use cw_storage_plus::{Item, Map};
+use cosmwasm_std::CanonicalAddr;
+use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
