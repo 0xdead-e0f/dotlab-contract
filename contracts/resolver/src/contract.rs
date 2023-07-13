@@ -80,7 +80,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetAddress { node } => to_binary(&query_address(deps, env, node)?),
         QueryMsg::GetAvatar { node } => to_binary(&query_avatar(deps, env, node)?),
-        QueryMsg::GetName { address } => to_binary(&query_name(deps, env, address)?),
+        QueryMsg::GetName { node } => to_binary(&query_name(deps, env, node)?),
         QueryMsg::GetSeiAddress { node } => to_binary(&query_sei_address(deps, env, node)?),
         QueryMsg::GetTextData { node, key } => to_binary(&query_text_data(deps, env, node, key)?),
         QueryMsg::GetContentHash { node } => to_binary(&query_content_hash(deps, env, node)?),

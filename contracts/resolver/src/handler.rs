@@ -121,9 +121,9 @@ pub fn query_avatar(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AvatarRes
     Ok(AvatarResponse { avatar_uri })
 }
 
-pub fn query_name(deps: Deps, _env: Env, address: String) -> StdResult<NameResponse> {
-    let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
-    let name = NAMES.load(deps.storage, address_namehash)?;
+pub fn query_name(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<NameResponse> {
+    // let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
+    let name = NAMES.load(deps.storage, node)?;
     Ok(NameResponse { name })
 }
 

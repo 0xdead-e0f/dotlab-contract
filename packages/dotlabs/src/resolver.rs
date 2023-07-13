@@ -52,7 +52,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetAddress { node: Vec<u8> },
     GetAvatar { node: Vec<u8> },
-    GetName { address: String },
+    GetName { node: Vec<u8> },
     GetTextData { node: Vec<u8>, key: String },
     GetSeiAddress { node: Vec<u8> },
     GetContentHash { node: Vec<u8> },

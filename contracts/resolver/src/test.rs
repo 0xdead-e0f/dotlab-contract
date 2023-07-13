@@ -69,7 +69,7 @@ mod tests {
         .unwrap();
 
         let query_msg = QueryMsg::GetName {
-            address: String::from("new_address"),
+            node: namehash("new_address.addr.reverse"),
         };
 
         let res = query(deps.as_ref(), mock_env(), query_msg.clone()).unwrap();
