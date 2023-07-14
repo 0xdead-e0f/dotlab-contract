@@ -102,10 +102,11 @@ pub fn set_name(
     address: String,
     name: String,
 ) -> Result<Response, ContractError> {
-    let namehash_node = namehash(&name);
-    only_authorized(&deps, &info, &namehash_node)?;
-
+    // let namehash_node = namehash(&name);
     let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
+
+    // only_authorized(&deps, &info, &namehash_node)?;
+    only_authorized(&deps, &info, &address_namehash)?;
 
     NAMES.save(deps.storage, address_namehash, &name)?;
     Ok(Response::default())
