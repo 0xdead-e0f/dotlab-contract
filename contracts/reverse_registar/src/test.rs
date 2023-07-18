@@ -9,11 +9,10 @@ mod tests {
     // fn test_xxxxxxxxx() {
     //     let mut deps = mock_dependencies();
 
-    //     let address = "sei12klaltyqvg2j6v034jwdxrk5n4242ttsztzqqk".to_string();
-    //     let xxx = deps.api.addr_canonicalize(address.as_str()).unwrap();
-    //     let yyy = deps.api.addr_humanize(&xxx).unwrap().to_string();
+    //     let name = String::from("erwrew.sei");
+    //     let namehash = namehash(name.as_str());
 
-    //     assert_eq!(xxx.to_string(), yyy);
+    //     assert_eq!(namehash, vec![0]);
     // }
 
     #[test]

@@ -33,18 +33,26 @@ pub fn only_authorized(
 ) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
 
-    let trusted_reverse_registrar = deps
-        .api
-        .addr_humanize(&config.trusted_reverse_registrar)?
-        .to_string();
+    // let trusted_reverse_registrar = deps
+    //     .api
+    //     .addr_humanize(&config.trusted_reverse_registrar)?
+    //     .to_string();
 
-    let trusted_controller_address = deps
-        .api
-        .addr_humanize(&config.trusted_controller)?
-        .to_string();
+    // let trusted_controller_address = deps
+    //     .api
+    //     .addr_humanize(&config.trusted_controller)?
+    //     .to_string();
 
-    if info.sender.to_string() == trusted_reverse_registrar
-        || info.sender.to_string() == trusted_controller_address
+    // if info.sender.to_string() == trusted_reverse_registrar
+    //     || info.sender.to_string() == trusted_controller_address
+    // {
+    //     return Ok(true);
+    // }
+
+    let canonical_sender = deps.api.addr_canonicalize(info.sender.as_str())?;
+    let canonical_sender_vec = canonical_sender.to_vec();
+    if canonical_sender_vec == config.trusted_controller.to_vec()
+        || canonical_sender_vec == config.trusted_reverse_registrar.to_vec()
     {
         return Ok(true);
     }
