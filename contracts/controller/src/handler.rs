@@ -355,7 +355,7 @@ fn _register(
 
     // Transfer ownership of NFT to user
     let transfer_nft_registrar_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: registrar_address,
+        contract_addr: registrar_address.clone(),
         msg: to_binary(&RegistrarExecuteMsg::<Extension>::TransferNft {
             recipient: owner.clone(),
             token_id: token_id,
@@ -364,9 +364,39 @@ fn _register(
     });
     messages.push(transfer_nft_registrar_msg);
 
+    // if reverse_record {
+    //     if let Some(addr) = address {
+    //         set_reverse_record(deps, name, addr, resolver, owner.to_string())?;
+    //     }
+    // }
+
     if reverse_record {
         if let Some(addr) = address {
-            set_reverse_record(deps, name, addr, resolver, owner.to_string())?;
+            let get_registrar_config_response: ConfigResponse =
+                deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                    contract_addr: registrar_address.clone(),
+                    msg: to_binary(&RegistrarQueryMsg::<WasmQuery>::GetConfig {})?,
+                }))?;
+
+            let base_name = get_registrar_config_response.base_name;
+
+            let reverse_registrar_address = deps
+                .api
+                .addr_humanize(&config.reverse_registrar_address)?
+                .to_string();
+
+            let set_reverse_record_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: reverse_registrar_address,
+                msg: to_binary(&ReverseRegistrarExecuteMsg::SetNameForAddr {
+                    address: addr,
+                    owner,
+                    resolver,
+                    name: name + &".".to_string() + base_name.as_str(),
+                    // name: name + &".sei".to_string(),
+                })?,
+                funds: vec![],
+            });
+            messages.push(set_reverse_record_msg);
         }
     }
 
