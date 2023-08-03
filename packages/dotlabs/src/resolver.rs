@@ -1,4 +1,4 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -57,6 +57,7 @@ pub enum QueryMsg {
     GetSeiAddress { node: Vec<u8> },
     GetContentHash { node: Vec<u8> },
     GetConfig {},
+    Multicall { queries: Vec<Binary> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -82,6 +83,11 @@ pub struct TextDataResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ContentHashResponse {
     pub hash: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MulticallResponse {
+    pub data: Vec<Binary>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

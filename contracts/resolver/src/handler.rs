@@ -1,15 +1,25 @@
 use crate::error::ContractError;
+use crate::error::QueryError;
+use crate::error::QueryResult;
 use crate::state::AVATARS;
 use crate::state::CONTENT_HASH;
 use crate::state::NAMES;
 use crate::state::TEXT_DATA;
 use crate::state::{ADDRESSES, CONFIG};
+use cosmwasm_std::to_vec;
+use cosmwasm_std::Addr;
+use cosmwasm_std::Binary;
+use cosmwasm_std::ContractResult;
+use cosmwasm_std::Empty;
+use cosmwasm_std::QuerierResult;
+use cosmwasm_std::SystemResult;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryRequest, Response, StdResult, WasmQuery,
 };
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::resolver::AvatarResponse;
+use dotlabs::resolver::MulticallResponse;
 use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
 use dotlabs::utils::namehash;
@@ -244,4 +254,38 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
         trusted_controller,
         owner,
     })
+}
+
+fn process_wasm_query(address: Addr, binary: Binary) -> StdResult<Vec<u8>> {
+    let query = QueryRequest::<Empty>::Wasm(WasmQuery::Smart {
+        contract_addr: address.to_string(),
+        msg: binary,
+    });
+    return to_vec(&query);
+}
+
+fn process_query_result(result: QuerierResult) -> QueryResult {
+    match result {
+        SystemResult::Err(system_err) => Err(QueryError::System(system_err.to_string())),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => {
+            Err(QueryError::Contract(contract_err))
+        }
+        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+    }
+}
+
+pub fn multicall(deps: Deps, env: Env, queries: Vec<Binary>) -> StdResult<MulticallResponse> {
+    let mut results: Vec<Binary> = Vec::new();
+    let n = queries.len();
+    for i in 1..n {
+        let query = queries[i].clone();
+        let wasm = &process_wasm_query(env.contract.address.clone(), query).unwrap_or(vec![]);
+        let res = deps.querier.raw_query(wasm);
+        let data = match process_query_result(res) {
+            Ok(res) => res,
+            Err(err) => return Err(err.std_at_index(i)),
+        };
+        results.push(data);
+    }
+    Ok(MulticallResponse { data: results })
 }
