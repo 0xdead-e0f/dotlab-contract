@@ -45,6 +45,40 @@ pub enum ExecuteMsg {
         node: Vec<u8>,
         avatar_uri: String,
     },
+    Multicall {
+        functions: Vec<FunctionCall>,
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum FunctionCall {
+    SetAddress {
+        node: Vec<u8>,
+        address: String,
+    },
+    SetSeiAddress {
+        node: Vec<u8>,
+        address: String,
+    },
+    SetTextData {
+        node: Vec<u8>,
+        key: String,
+        value: String,
+    },
+    SetContentHash {
+        node: Vec<u8>,
+        hash: Vec<u8>,
+    },
+    SetName {
+        address: String,
+        name: String,
+    },
+    SetAvatar {
+        node: Vec<u8>,
+        avatar_uri: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -101,3 +135,4 @@ pub struct ConfigResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
+

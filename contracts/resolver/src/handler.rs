@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use crate::error::ContractError;
 use crate::error::QueryError;
 use crate::error::QueryResult;
@@ -19,6 +21,7 @@ use cosmwasm_std::{
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::resolver::AvatarResponse;
+use dotlabs::resolver::FunctionCall;
 use dotlabs::resolver::MulticallResponse;
 use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
@@ -288,4 +291,56 @@ pub fn multicall(deps: Deps, env: Env, queries: Vec<Binary>) -> StdResult<Multic
         results.push(data);
     }
     Ok(MulticallResponse { data: results })
+}
+
+fn execute_single_call(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    call_msg: FunctionCall,
+) -> Result<Response, ContractError> {
+    // let deps = deps.branch();
+    match call_msg {
+        FunctionCall::SetAddress { node, address } => set_address(deps, env, info, node, address),
+        FunctionCall::SetAvatar { node, avatar_uri } => set_avatar(deps, env, info, node, avatar_uri),
+        FunctionCall::SetName { address, name } => set_name(deps, env, info, address, name),
+        FunctionCall::SetSeiAddress { node, address } => {
+            set_sei_address(deps, env, info, node, address)
+        }
+        FunctionCall::SetTextData { node, key, value } => {
+            set_text_data(deps, env, info, node, key, value)
+        }
+        FunctionCall::SetContentHash { node, hash } => set_content_hash(deps, env, info, node, hash),
+        _ => Err(ContractError::InvalidCall{}),
+    }
+}
+pub fn multicall_execute(deps: DepsMut, env: Env, info: MessageInfo, functions: Vec<FunctionCall>)  -> Result<Response, ContractError> {
+    let deps = RefCell::new(deps);
+    
+    let results: Vec<Result<Response, ContractError>> = functions
+        .into_iter()
+        .map(|call_msg| {
+            let mut deps = deps.borrow_mut();
+            // let deps = deps.branch();
+            execute_single_call(deps.branch(), env.clone(), info.clone(), call_msg)
+        })
+        .collect();
+    
+    let errors: Vec<ContractError> = results
+        .into_iter()
+        .filter_map(|result| result.err())
+        .collect();
+
+    if !errors.is_empty() {
+        return Err(ContractError::MulticallExecuteError { errors });
+    } 
+
+    // // Merge responses into a single response
+    // let responses: Vec<Response> = results
+    //     .into_iter()
+    //     .filter_map(|result| result.ok())
+    //     .collect();
+
+    Ok(Response::default())
+
 }

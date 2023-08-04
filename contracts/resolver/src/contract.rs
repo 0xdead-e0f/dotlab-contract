@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use crate::error::ContractError;
 use crate::handler::{
     get_config, multicall, query_address, query_avatar, query_content_hash, query_name,
@@ -72,6 +74,7 @@ pub fn execute(
             trusted_controller,
             owner,
         ),
+        ExecuteMsg::Multicall { functions } => todo!(),
     }
 }
 

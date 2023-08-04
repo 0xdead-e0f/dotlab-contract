@@ -1,3 +1,5 @@
+use std::vec;
+
 use cosmwasm_std::{Binary, StdError};
 use thiserror::Error;
 
@@ -14,6 +16,12 @@ pub enum ContractError {
 
     #[error("NotNodeOwner(Resolver): Sender {sender} is not node owner of {node}.")]
     NotNodeOwner { sender: String, node: String },
+
+    #[error("Multicall InvalidCall")]
+    InvalidCall {},
+
+    #[error("Multicall Error")]
+    MulticallExecuteError { errors: Vec<ContractError>},
     // Add any other custom errors you like here.
     // Look at https://docs.rs/thiserror/1.0.21/thiserror/ for details.
 }
