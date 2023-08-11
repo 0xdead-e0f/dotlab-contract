@@ -1,10 +1,8 @@
-use std::borrow::BorrowMut;
-
 use crate::error::ContractError;
 use crate::handler::{
     get_config, multicall, query_address, query_avatar, query_content_hash, query_name,
     query_sei_address, query_text_data, set_address, set_avatar, set_config, set_content_hash,
-    set_name, set_sei_address, set_text_data,
+    set_name, set_sei_address, set_text_data, multicall_execute,
 };
 use crate::state::{Config, CONFIG};
 #[cfg(not(feature = "library"))]
@@ -74,7 +72,7 @@ pub fn execute(
             trusted_controller,
             owner,
         ),
-        ExecuteMsg::Multicall { functions } => todo!(),
+        ExecuteMsg::Multicall { functions } => multicall_execute(deps, env, info, functions),
     }
 }
 

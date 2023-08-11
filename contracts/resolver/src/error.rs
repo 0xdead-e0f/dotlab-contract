@@ -1,5 +1,3 @@
-use std::vec;
-
 use cosmwasm_std::{Binary, StdError};
 use thiserror::Error;
 

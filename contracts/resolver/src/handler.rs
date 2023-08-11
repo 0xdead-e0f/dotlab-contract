@@ -311,7 +311,6 @@ fn execute_single_call(
             set_text_data(deps, env, info, node, key, value)
         }
         FunctionCall::SetContentHash { node, hash } => set_content_hash(deps, env, info, node, hash),
-        _ => Err(ContractError::InvalidCall{}),
     }
 }
 pub fn multicall_execute(deps: DepsMut, env: Env, info: MessageInfo, functions: Vec<FunctionCall>)  -> Result<Response, ContractError> {
