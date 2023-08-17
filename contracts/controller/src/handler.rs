@@ -6,7 +6,7 @@ use crate::msg::{
 use crate::state::{CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, Addr,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
