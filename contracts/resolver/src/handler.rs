@@ -144,18 +144,18 @@ pub fn set_name(
 }
 
 pub fn query_address(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
-    let address = ADDRESSES.load(deps.storage, node)?;
-    Ok(AddressResponse { address: address })
+    let address = ADDRESSES.load(deps.storage, node).unwrap_or(String::from(""));
+    Ok(AddressResponse { address })
 }
 
 pub fn query_avatar(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AvatarResponse> {
-    let avatar_uri = AVATARS.load(deps.storage, node)?;
+    let avatar_uri = AVATARS.load(deps.storage, node).unwrap_or(String::from(""));
     Ok(AvatarResponse { avatar_uri })
 }
 
 pub fn query_name(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<NameResponse> {
     // let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
-    let name = NAMES.load(deps.storage, node)?;
+    let name = NAMES.load(deps.storage, node).unwrap_or(String::from(""));
     Ok(NameResponse { name })
 }
 
@@ -182,7 +182,7 @@ pub fn query_text_data(
     node: Vec<u8>,
     key: String,
 ) -> StdResult<TextDataResponse> {
-    let value = TEXT_DATA.load(deps.storage, (node, key))?;
+    let value = TEXT_DATA.load(deps.storage, (node, key)).unwrap_or(String::from(""));
     Ok(TextDataResponse {
         data: value.to_string(),
     })
@@ -201,7 +201,7 @@ pub fn set_content_hash(
 }
 
 pub fn query_content_hash(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<ContentHashResponse> {
-    let value = CONTENT_HASH.load(deps.storage, node)?;
+    let value = CONTENT_HASH.load(deps.storage, node).unwrap_or(vec![]);
     Ok(ContentHashResponse { hash: value })
 }
 
