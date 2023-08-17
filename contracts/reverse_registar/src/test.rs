@@ -1,9 +1,9 @@
 mod tests {
     use crate::contract::{execute, instantiate};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{coins, to_binary, Api, CosmosMsg, WasmMsg};
+    use cosmwasm_std::{coins, to_binary, CosmosMsg, WasmMsg};
     use dotlabs::reverse_registar::{ExecuteMsg, InstantiateMsg};
-    use dotlabs::utils::{get_label_from_name, namehash};
+    // use dotlabs::utils::{get_label_from_name, namehash};
 
     // #[test]
     // fn test_xxxxxxxxx() {
@@ -12,7 +12,9 @@ mod tests {
     //     let name = String::from("erwrew.sei");
     //     let namehash = namehash(name.as_str());
 
-    //     assert_eq!(namehash, vec![0]);
+    //     let xxx = to_binary(QueryMsg::GetTextData{vec![ 13, 220, 91, 142, 243, 31, 92, 188, 110, 96, 4, 240, 121, 191, 85, 243, 214, 216, 26, 143, 90, 147, 151, 32, 115, 1, 40, 206, 184, 230, 48, 173], String::from("telegram")}).unwrap();
+    //     // assert_eq!(namehash, vec![0]);
+    //     assert_eq!(xxx, to_binary("xxx").unwrap());
     // }
 
     #[test]

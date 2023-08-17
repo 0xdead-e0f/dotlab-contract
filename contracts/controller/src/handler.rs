@@ -6,7 +6,7 @@ use crate::msg::{
 use crate::state::{CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, Addr,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
@@ -507,7 +507,7 @@ pub fn referal_register(
         duration.clone(),
     )?;
 
-    let messages = _register(
+    let mut messages = _register(
         deps.branch(),
         env.clone(),
         name.clone(),
@@ -526,8 +526,11 @@ pub fn referal_register(
         let result = send_referal_funds(deps.as_ref(), env, info, &fund, referer);
 
         if let Ok(response) = result {
-            let referal_owner = response.attributes.get(0).unwrap().value.clone();
-            let fund_amount = response.attributes.get(1).unwrap().value.clone();
+            let referal_owner = response.1;
+            let referal_fund_amount = response.2;
+            let msg = response.0;
+
+            messages.push(cosmwasm_std::CosmosMsg::Bank(msg));
 
             return Ok(Response::new()
                 .add_messages(messages)
@@ -536,8 +539,8 @@ pub fn referal_register(
                 .add_attribute("label", format!("{:?}", label.clone()))
                 .add_attribute("token_id", token_id)
                 .add_attribute("nodehash", format!("{:?}", nodehash))
-                .add_attribute("owner", referal_owner)
-                .add_attribute("fund", fund_amount));
+                .add_attribute("referal_owner", referal_owner)
+                .add_attribute("referal_fund", referal_fund_amount));
         }
     }
 
@@ -556,7 +559,7 @@ pub fn send_referal_funds(
     _info: MessageInfo,
     fund: &Coin,
     referer_ensname: String,
-) -> Result<Response, ContractError> {
+) -> Result<(BankMsg, String, Uint128), ContractError>{
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps
         .api
@@ -597,14 +600,15 @@ pub fn send_referal_funds(
 
     let amount = referal_fund.amount;
 
-    BankMsg::Send {
+    let bank_msg = BankMsg::Send {
         to_address: referal_owner.to_string(),
         amount: vec![referal_fund],
     };
 
-    Ok(Response::new()
-        .add_attribute("owner", referal_owner)
-        .add_attribute("fund", amount))
+    // Ok(Response::new()
+    //     .add_attribute("owner", referal_owner)
+    //     .add_attribute("fund", amount))
+    Ok((bank_msg, referal_owner.to_string(), amount))
 }
 
 pub fn is_whitelisted_account(deps: Deps, ensname: String) -> (bool, Vec<u8>, u32) {
