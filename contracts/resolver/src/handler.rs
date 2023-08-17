@@ -280,7 +280,7 @@ fn process_query_result(result: QuerierResult) -> QueryResult {
 pub fn multicall(deps: Deps, env: Env, queries: Vec<Binary>) -> StdResult<MulticallResponse> {
     let mut results: Vec<Binary> = Vec::new();
     let n = queries.len();
-    for i in 1..n {
+    for i in 0..n {
         let query = queries[i].clone();
         let wasm = &process_wasm_query(env.contract.address.clone(), query).unwrap_or(vec![]);
         let res = deps.querier.raw_query(wasm);
