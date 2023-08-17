@@ -18,11 +18,19 @@ pub enum ContractError {
     #[error("Multicall InvalidCall")]
     InvalidCall {},
 
-    #[error("Multicall Error")]
+    #[error("Multicall Error: {:?}", errors)]
     MulticallExecuteError { errors: Vec<ContractError>},
     // Add any other custom errors you like here.
     // Look at https://docs.rs/thiserror/1.0.21/thiserror/ for details.
 }
+
+// impl fmt::Display for ContractError {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         // Implement how you want to display the error message here
+//         // You can use the format! macro for formatting the error message
+//         write!(f, "Contract Error: {}", self)
+//     }
+// }
 
 #[derive(Error, Debug)]
 pub enum QueryError {
