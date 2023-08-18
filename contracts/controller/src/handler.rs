@@ -586,14 +586,14 @@ pub fn send_referal_funds(
     let referal_owner = get_record_by_node_response.owner;
 
     let mut referal_fund = fund.clone();
-    referal_fund.amount = referal_fund
+    referal_fund.amount = fund
         .amount
         .multiply_ratio(config.referal_percentage.0 as u128, 100u128);
 
     let result = is_whitelisted_account(deps, referer_ensname);
 
     if result.0 {
-        referal_fund.amount = referal_fund
+        referal_fund.amount = fund
             .amount
             .multiply_ratio(result.2 as u128, 100u128);
     }
@@ -954,6 +954,14 @@ pub fn add_whitelist_by_owner(
     refereal_percentage: Option<u32>,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
+
+    if let Some(referal_precent_value) = refereal_percentage {
+        if referal_precent_value > 50u32 {
+            return Err(ContractError::ReferalPercentageError {
+                description: Some(String::from("Referal percentage must be less than 50%")),
+            });
+        }
+    }
 
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps
