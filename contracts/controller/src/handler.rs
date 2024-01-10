@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use crate::error::ContractError;
 use crate::msg::{
     IsValidNameResponse, MinRegistrationDurationResponse, NodeInfoResponse, NodehashResponse,
@@ -6,7 +8,7 @@ use crate::msg::{
 use crate::state::{CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, Decimal,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
@@ -270,6 +272,8 @@ pub fn get_cost(deps: Deps<SeiQueryWrapper>, name: String, duration: u64) -> Res
     };
     let exchange_rate = exchange_rate.denom_oracle_exchange_rate_pairs.iter().find(|pair|pair.denom == String::from("usei")).unwrap();
     let exchange_rate = exchange_rate.oracle_exchange_rate.exchange_rate;
+    let exchange_rate = exchange_rate.mul(Uint128::from(1000u128));
+    let exchange_rate = Decimal::from_atomics(exchange_rate, 3).unwrap();
     Ok(Uint128::from(base_cost).multiply_ratio(duration, 31_536_000u64).div_ceil(exchange_rate))
 }
 
