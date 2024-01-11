@@ -9,7 +9,7 @@ mod tests {
         NameResponse, QueryMsg, TextDataResponse,
     };
     use dotlabs::utils::namehash;
-
+    
     #[test]
     fn test_non_owner_cannot_set_address() {
         let mut deps = mock_dependencies(&[]);

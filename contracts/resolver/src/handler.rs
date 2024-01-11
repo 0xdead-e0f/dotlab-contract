@@ -1,15 +1,28 @@
+use std::cell::RefCell;
+
 use crate::error::ContractError;
+use crate::error::QueryError;
+use crate::error::QueryResult;
 use crate::state::AVATARS;
 use crate::state::CONTENT_HASH;
 use crate::state::NAMES;
 use crate::state::TEXT_DATA;
 use crate::state::{ADDRESSES, CONFIG};
+use cosmwasm_std::to_vec;
+use cosmwasm_std::Addr;
+use cosmwasm_std::Binary;
+use cosmwasm_std::ContractResult;
+use cosmwasm_std::Empty;
+use cosmwasm_std::QuerierResult;
+use cosmwasm_std::SystemResult;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryRequest, Response, StdResult, WasmQuery,
 };
 // use cw_storage_plus::U64Key;
 use dotlabs::registry::QueryMsg as RegistryQueryMsg;
 use dotlabs::resolver::AvatarResponse;
+use dotlabs::resolver::FunctionCall;
+use dotlabs::resolver::MulticallResponse;
 use dotlabs::resolver::NameResponse;
 use dotlabs::resolver::{AddressResponse, ConfigResponse, ContentHashResponse, TextDataResponse};
 use dotlabs::utils::namehash;
@@ -131,18 +144,18 @@ pub fn set_name(
 }
 
 pub fn query_address(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AddressResponse> {
-    let address = ADDRESSES.load(deps.storage, node)?;
-    Ok(AddressResponse { address: address })
+    let address = ADDRESSES.load(deps.storage, node).unwrap_or(String::from(""));
+    Ok(AddressResponse { address })
 }
 
 pub fn query_avatar(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<AvatarResponse> {
-    let avatar_uri = AVATARS.load(deps.storage, node)?;
+    let avatar_uri = AVATARS.load(deps.storage, node).unwrap_or(String::from(""));
     Ok(AvatarResponse { avatar_uri })
 }
 
 pub fn query_name(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<NameResponse> {
     // let address_namehash = namehash((address.clone() + &".addr.reverse".to_string()).as_str());
-    let name = NAMES.load(deps.storage, node)?;
+    let name = NAMES.load(deps.storage, node).unwrap_or(String::from(""));
     Ok(NameResponse { name })
 }
 
@@ -169,7 +182,7 @@ pub fn query_text_data(
     node: Vec<u8>,
     key: String,
 ) -> StdResult<TextDataResponse> {
-    let value = TEXT_DATA.load(deps.storage, (node, key))?;
+    let value = TEXT_DATA.load(deps.storage, (node, key)).unwrap_or(String::from(""));
     Ok(TextDataResponse {
         data: value.to_string(),
     })
@@ -188,7 +201,7 @@ pub fn set_content_hash(
 }
 
 pub fn query_content_hash(deps: Deps, _env: Env, node: Vec<u8>) -> StdResult<ContentHashResponse> {
-    let value = CONTENT_HASH.load(deps.storage, node)?;
+    let value = CONTENT_HASH.load(deps.storage, node).unwrap_or(vec![]);
     Ok(ContentHashResponse { hash: value })
 }
 
@@ -244,4 +257,89 @@ pub fn get_config(deps: Deps) -> StdResult<ConfigResponse> {
         trusted_controller,
         owner,
     })
+}
+
+fn process_wasm_query(address: Addr, binary: Binary) -> StdResult<Vec<u8>> {
+    let query = QueryRequest::<Empty>::Wasm(WasmQuery::Smart {
+        contract_addr: address.to_string(),
+        msg: binary,
+    });
+    return to_vec(&query);
+}
+
+fn process_query_result(result: QuerierResult) -> QueryResult {
+    match result {
+        SystemResult::Err(system_err) => Err(QueryError::System(system_err.to_string())),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => {
+            Err(QueryError::Contract(contract_err))
+        }
+        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+    }
+}
+
+pub fn multicall(deps: Deps, env: Env, queries: Vec<Binary>) -> StdResult<MulticallResponse> {
+    let mut results: Vec<Binary> = Vec::new();
+    let n = queries.len();
+    for i in 0..n {
+        let query = queries[i].clone();
+        let wasm = &process_wasm_query(env.contract.address.clone(), query).unwrap_or(vec![]);
+        let res = deps.querier.raw_query(wasm);
+        let data = match process_query_result(res) {
+            Ok(res) => res,
+            Err(err) => return Err(err.std_at_index(i)),
+        };
+        results.push(data);
+    }
+    Ok(MulticallResponse { data: results })
+}
+
+fn execute_single_call(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    call_msg: FunctionCall,
+) -> Result<Response, ContractError> {
+    // let deps = deps.branch();
+    match call_msg {
+        FunctionCall::SetAddress { node, address } => set_address(deps, env, info, node, address),
+        FunctionCall::SetAvatar { node, avatar_uri } => set_avatar(deps, env, info, node, avatar_uri),
+        FunctionCall::SetName { address, name } => set_name(deps, env, info, address, name),
+        FunctionCall::SetSeiAddress { node, address } => {
+            set_sei_address(deps, env, info, node, address)
+        }
+        FunctionCall::SetTextData { node, key, value } => {
+            set_text_data(deps, env, info, node, key, value)
+        }
+        FunctionCall::SetContentHash { node, hash } => set_content_hash(deps, env, info, node, hash),
+    }
+}
+pub fn multicall_execute(deps: DepsMut, env: Env, info: MessageInfo, functions: Vec<FunctionCall>)  -> Result<Response, ContractError> {
+    let deps = RefCell::new(deps);
+    
+    let results: Vec<Result<Response, ContractError>> = functions
+        .into_iter()
+        .map(|call_msg| {
+            let mut deps = deps.borrow_mut();
+            // let deps = deps.branch();
+            execute_single_call(deps.branch(), env.clone(), info.clone(), call_msg)
+        })
+        .collect();
+    
+    let errors: Vec<ContractError> = results
+        .into_iter()
+        .filter_map(|result| result.err())
+        .collect();
+
+    if !errors.is_empty() {
+        return Err(ContractError::MulticallExecuteError { errors });
+    } 
+
+    // // Merge responses into a single response
+    // let responses: Vec<Response> = results
+    //     .into_iter()
+    //     .filter_map(|result| result.ok())
+    //     .collect();
+
+    Ok(Response::default())
+
 }

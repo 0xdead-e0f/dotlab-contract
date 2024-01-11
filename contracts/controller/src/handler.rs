@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use crate::error::ContractError;
 use crate::msg::{
     IsValidNameResponse, MinRegistrationDurationResponse, NodeInfoResponse, NodehashResponse,
@@ -6,7 +8,7 @@ use crate::msg::{
 use crate::state::{CONFIG, REGISTER_FEE_DENOM, WHITELIST};
 use cosmwasm_std::{
     to_binary, BalanceResponse, BankMsg, BankQuery, Coin, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery, Decimal,
 };
 use hex;
 // use terraswap::asset::{Asset, AssetInfo};
@@ -19,9 +21,10 @@ use dotlabs::registry::{ExecuteMsg as RegistryExecuteMsg, RecordResponse};
 use dotlabs::resolver::ExecuteMsg as ResolverExecuteMsg;
 use dotlabs::reverse_registar::ExecuteMsg as ReverseRegistrarExecuteMsg;
 use dotlabs::utils::{get_label_from_name, get_token_id_from_label, keccak256};
+use sei_cosmwasm::{SeiQueryWrapper, ExchangeRatesResponse, SeiQuerier};
 use unicode_segmentation::UnicodeSegmentation;
 
-fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
+fn only_owner(deps: Deps<SeiQueryWrapper>, info: &MessageInfo) -> Result<bool, ContractError> {
     let config = CONFIG.load(deps.storage)?;
     let sender = deps.api.addr_canonicalize(info.sender.as_str())?;
     if sender != config.owner {
@@ -33,7 +36,7 @@ fn only_owner(deps: Deps, info: &MessageInfo) -> Result<bool, ContractError> {
     Ok(true)
 }
 
-pub fn withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn withdraw(deps: DepsMut<SeiQueryWrapper>, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
 
     let balance_response: BalanceResponse =
@@ -64,7 +67,7 @@ pub fn withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 }
 
 pub fn set_config(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     min_registration_duration: u64,
@@ -115,7 +118,7 @@ pub fn set_config(
 }
 
 pub fn set_enable_registration(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     enable_registration: bool,
@@ -130,7 +133,7 @@ pub fn set_enable_registration(
 }
 
 pub fn set_whitelist_price(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     price: u64,
@@ -145,7 +148,7 @@ pub fn set_whitelist_price(
 }
 
 pub fn set_referal_percentage(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     normal_percentage: u32,
@@ -202,7 +205,7 @@ pub fn set_referal_percentage(
 //         .add_attribute("commitment", commitment))
 // }
 
-fn validate_name(deps: Deps, name: String) -> Result<(), ContractError> {
+fn validate_name(deps: Deps<SeiQueryWrapper>, name: String) -> Result<(), ContractError> {
     if !get_is_valid_name(&name)?.is_valid_name {
         return Err(ContractError::InvalidName {});
     }
@@ -240,7 +243,15 @@ fn validate_name(deps: Deps, name: String) -> Result<(), ContractError> {
 //     Ok(())
 // }
 
-pub fn get_cost(deps: Deps, name: String, duration: u64) -> Result<Uint128, ContractError> {
+pub fn query_exchange_rates(deps: Deps<SeiQueryWrapper>) -> StdResult<ExchangeRatesResponse> {
+    let querier = SeiQuerier::new(&deps.querier);
+    let res: ExchangeRatesResponse = querier.query_exchange_rates()?;
+
+    Ok(res)
+}
+
+pub fn get_cost(deps: Deps<SeiQueryWrapper>, name: String, duration: u64) -> Result<Uint128, ContractError> {
+    let exchange_rate = query_exchange_rates(deps)?;
     let config = CONFIG.load(deps.storage)?;
     let min_duration = config.min_registration_duration;
     let name_length = name.graphemes(true).count();
@@ -259,10 +270,14 @@ pub fn get_cost(deps: Deps, name: String, duration: u64) -> Result<Uint128, Cont
         4 => config.tier2_price,
         _ => config.tier3_price,
     };
-    Ok(Uint128::from(base_cost).multiply_ratio(duration, 31_536_000u64))
+    let exchange_rate = exchange_rate.denom_oracle_exchange_rate_pairs.iter().find(|pair|pair.denom == String::from("usei")).unwrap();
+    let exchange_rate = exchange_rate.oracle_exchange_rate.exchange_rate;
+    let exchange_rate = exchange_rate.mul(Uint128::from(1000u128));
+    let exchange_rate = Decimal::from_atomics(exchange_rate, 3).unwrap();
+    Ok(Uint128::from(base_cost).multiply_ratio(duration, 31_536_000u64).div_ceil(exchange_rate))
 }
 
-pub fn get_price(deps: Deps) -> StdResult<PriceResponse> {
+pub fn get_price(deps: Deps<SeiQueryWrapper>) -> StdResult<PriceResponse> {
     let config = CONFIG.load(deps.storage)?;
     Ok(PriceResponse {
         tier1_price: config.tier1_price,
@@ -273,7 +288,7 @@ pub fn get_price(deps: Deps) -> StdResult<PriceResponse> {
 }
 
 fn _register(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     name: String,
     owner: String,
@@ -404,7 +419,7 @@ fn _register(
 }
 
 fn validate_register_fund(
-    deps: Deps,
+    deps: Deps<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     name: String,
@@ -430,7 +445,7 @@ fn validate_register_fund(
     Ok(fund.clone())
 }
 
-fn validate_enable_registration(deps: Deps) -> Result<(), ContractError> {
+fn validate_enable_registration(deps: Deps<SeiQueryWrapper>) -> Result<(), ContractError> {
     let config = CONFIG.load(deps.storage)?;
     if !config.enable_registration {
         return Err(ContractError::RegistrationDisabled {});
@@ -439,7 +454,7 @@ fn validate_enable_registration(deps: Deps) -> Result<(), ContractError> {
 }
 
 pub fn register(
-    mut deps: DepsMut,
+    mut deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     info: MessageInfo,
     name: String,
@@ -485,7 +500,7 @@ pub fn register(
 }
 
 pub fn referal_register(
-    mut deps: DepsMut,
+    mut deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     info: MessageInfo,
     name: String,
@@ -507,7 +522,7 @@ pub fn referal_register(
         duration.clone(),
     )?;
 
-    let messages = _register(
+    let mut messages = _register(
         deps.branch(),
         env.clone(),
         name.clone(),
@@ -526,8 +541,11 @@ pub fn referal_register(
         let result = send_referal_funds(deps.as_ref(), env, info, &fund, referer);
 
         if let Ok(response) = result {
-            let referal_owner = response.attributes.get(0).unwrap().value.clone();
-            let fund_amount = response.attributes.get(1).unwrap().value.clone();
+            let referal_owner = response.1;
+            let referal_fund_amount = response.2;
+            let msg = response.0;
+
+            messages.push(cosmwasm_std::CosmosMsg::Bank(msg));
 
             return Ok(Response::new()
                 .add_messages(messages)
@@ -536,8 +554,8 @@ pub fn referal_register(
                 .add_attribute("label", format!("{:?}", label.clone()))
                 .add_attribute("token_id", token_id)
                 .add_attribute("nodehash", format!("{:?}", nodehash))
-                .add_attribute("owner", referal_owner)
-                .add_attribute("fund", fund_amount));
+                .add_attribute("referal_owner", referal_owner)
+                .add_attribute("referal_fund", referal_fund_amount));
         }
     }
 
@@ -551,12 +569,12 @@ pub fn referal_register(
 }
 
 pub fn send_referal_funds(
-    deps: Deps,
+    deps: Deps<SeiQueryWrapper>,
     _env: Env,
     _info: MessageInfo,
     fund: &Coin,
     referer_ensname: String,
-) -> Result<Response, ContractError> {
+) -> Result<(BankMsg, String, Uint128), ContractError>{
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps
         .api
@@ -583,31 +601,32 @@ pub fn send_referal_funds(
     let referal_owner = get_record_by_node_response.owner;
 
     let mut referal_fund = fund.clone();
-    referal_fund.amount = referal_fund
+    referal_fund.amount = fund
         .amount
         .multiply_ratio(config.referal_percentage.0 as u128, 100u128);
 
     let result = is_whitelisted_account(deps, referer_ensname);
 
     if result.0 {
-        referal_fund.amount = referal_fund
+        referal_fund.amount = fund
             .amount
             .multiply_ratio(result.2 as u128, 100u128);
     }
 
     let amount = referal_fund.amount;
 
-    BankMsg::Send {
+    let bank_msg = BankMsg::Send {
         to_address: referal_owner.to_string(),
         amount: vec![referal_fund],
     };
 
-    Ok(Response::new()
-        .add_attribute("owner", referal_owner)
-        .add_attribute("fund", amount))
+    // Ok(Response::new()
+    //     .add_attribute("owner", referal_owner)
+    //     .add_attribute("fund", amount))
+    Ok((bank_msg, referal_owner.to_string(), amount))
 }
 
-pub fn is_whitelisted_account(deps: Deps, ensname: String) -> (bool, Vec<u8>, u32) {
+pub fn is_whitelisted_account(deps: Deps<SeiQueryWrapper>, ensname: String) -> (bool, Vec<u8>, u32) {
     let account = WHITELIST.load(deps.storage, ensname.clone());
 
     match account {
@@ -619,7 +638,7 @@ pub fn is_whitelisted_account(deps: Deps, ensname: String) -> (bool, Vec<u8>, u3
 }
 
 pub fn owner_register(
-    mut deps: DepsMut,
+    mut deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     info: MessageInfo,
     name: String,
@@ -660,7 +679,7 @@ pub fn owner_register(
 }
 
 fn _renew(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     _info: MessageInfo,
     token_id: String,
@@ -687,7 +706,7 @@ fn _renew(
 }
 
 pub fn owner_renew(
-    mut deps: DepsMut,
+    mut deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     name: String,
@@ -709,7 +728,7 @@ pub fn owner_renew(
 }
 
 pub fn renew(
-    mut deps: DepsMut,
+    mut deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     info: MessageInfo,
     name: String,
@@ -760,7 +779,7 @@ pub fn renew(
 //     })
 // }
 
-pub fn get_nodehash(deps: Deps, label: Vec<u8>) -> StdResult<Vec<u8>> {
+pub fn get_nodehash(deps: Deps<SeiQueryWrapper>, label: Vec<u8>) -> StdResult<Vec<u8>> {
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps
         .api
@@ -780,7 +799,7 @@ pub fn get_nodehash(deps: Deps, label: Vec<u8>) -> StdResult<Vec<u8>> {
     Ok(nodehash)
 }
 
-pub fn is_available_name(deps: Deps, name: &String) -> StdResult<bool> {
+pub fn is_available_name(deps: Deps<SeiQueryWrapper>, name: &String) -> StdResult<bool> {
     let label = get_label_from_name(name);
     let id = get_token_id_from_label(&label);
     let config = CONFIG.load(deps.storage)?;
@@ -796,19 +815,19 @@ pub fn is_available_name(deps: Deps, name: &String) -> StdResult<bool> {
     return Ok(is_available_response.available);
 }
 
-pub fn get_owner(deps: Deps) -> StdResult<OwnerResponse> {
+pub fn get_owner(deps: Deps<SeiQueryWrapper>) -> StdResult<OwnerResponse> {
     let config = CONFIG.load(deps.storage)?;
     let owner = deps.api.addr_humanize(&config.owner)?;
     Ok(OwnerResponse { owner })
 }
 
-pub fn get_registrar(deps: Deps) -> StdResult<RegistrarResponse> {
+pub fn get_registrar(deps: Deps<SeiQueryWrapper>) -> StdResult<RegistrarResponse> {
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps.api.addr_humanize(&config.registrar_address)?;
     Ok(RegistrarResponse { registrar_address })
 }
 
-pub fn get_rent_price(deps: Deps, name: String, duration: u64) -> StdResult<RentPriceResponse> {
+pub fn get_rent_price(deps: Deps<SeiQueryWrapper>, name: String, duration: u64) -> StdResult<RentPriceResponse> {
     let cost = get_cost(deps, name, duration);
     if let Err(_err) = cost {
         return Err(StdError::generic_err("error"));
@@ -826,7 +845,7 @@ pub fn get_rent_price(deps: Deps, name: String, duration: u64) -> StdResult<Rent
 //     Ok(CommitmentTimestampResponse { timestamp })
 // }
 
-pub fn get_min_registration_duration(deps: Deps) -> StdResult<MinRegistrationDurationResponse> {
+pub fn get_min_registration_duration(deps: Deps<SeiQueryWrapper>) -> StdResult<MinRegistrationDurationResponse> {
     let config = CONFIG.load(deps.storage)?;
     Ok(MinRegistrationDurationResponse {
         duration: config.min_registration_duration,
@@ -853,7 +872,7 @@ pub fn get_is_valid_name(name: &String) -> StdResult<IsValidNameResponse> {
     Ok(IsValidNameResponse { is_valid_name })
 }
 
-pub fn get_node_info_from_name(deps: Deps, name: &String) -> StdResult<NodeInfoResponse> {
+pub fn get_node_info_from_name(deps: Deps<SeiQueryWrapper>, name: &String) -> StdResult<NodeInfoResponse> {
     let label: Vec<u8> = get_label_from_name(&name);
     let token_id = get_token_id_from_label(&label);
     let node = get_nodehash(deps, label.clone())?;
@@ -870,13 +889,13 @@ pub fn get_token_id_from_name(name: &String) -> StdResult<TokenIdResponse> {
     Ok(TokenIdResponse { token_id })
 }
 
-pub fn get_nodehash_from_name(deps: Deps, name: &String) -> StdResult<NodehashResponse> {
+pub fn get_nodehash_from_name(deps: Deps<SeiQueryWrapper>, name: &String) -> StdResult<NodehashResponse> {
     let label: Vec<u8> = get_label_from_name(&name);
     let node = get_nodehash(deps, label)?;
     Ok(NodehashResponse { node })
 }
 
-fn validate_whitelist_fund(deps: Deps, _env: Env, info: MessageInfo) -> Result<(), ContractError> {
+fn validate_whitelist_fund(deps: Deps<SeiQueryWrapper>, _env: Env, info: MessageInfo) -> Result<(), ContractError> {
     let config = CONFIG.load(deps.storage)?;
     let cost = Uint128::from(config.whitelist_price);
     let base_fund = &Coin {
@@ -899,7 +918,7 @@ fn validate_whitelist_fund(deps: Deps, _env: Env, info: MessageInfo) -> Result<(
 }
 
 pub fn add_whitelist(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     env: Env,
     info: MessageInfo,
     ensname: &String,
@@ -943,13 +962,21 @@ pub fn add_whitelist(
 }
 
 pub fn add_whitelist_by_owner(
-    deps: DepsMut,
+    deps: DepsMut<SeiQueryWrapper>,
     _env: Env,
     info: MessageInfo,
     ensname: &String,
     refereal_percentage: Option<u32>,
 ) -> Result<Response, ContractError> {
     only_owner(deps.as_ref(), &info)?;
+
+    if let Some(referal_precent_value) = refereal_percentage {
+        if referal_precent_value > 50u32 {
+            return Err(ContractError::ReferalPercentageError {
+                description: Some(String::from("Referal percentage must be less than 50%")),
+            });
+        }
+    }
 
     let config = CONFIG.load(deps.storage)?;
     let registrar_address = deps
